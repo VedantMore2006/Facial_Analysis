@@ -1,68 +1,90 @@
-import os
-os.environ['QT_QPA_PLATFORM'] = 'xcb'
-
 import numpy as np
+from collections import deque
 
 class FeatureExtractor:
-    def __init__(self):
-        pass
+    def __init__(self, window_size=10):
+        self.window_size = window_size
 
-    # -----------------------------
-    # Utility functions
-    # -----------------------------
-    def _euclidean(self, p1, p2):
-        return np.linalg.norm(np.array(p1) - np.array(p2))
+        # rolling history of features
+        self.feature_history = {
+            "blink": deque(maxlen=window_size),
+            "ear": deque(maxlen=window_size),
+            "jaw": deque(maxlen=window_size),
+            "au12": deque(maxlen=window_size),
+            "au15": deque(maxlen=window_size),
+            "au4_vel": deque(maxlen=window_size)
+        }
 
-    def _get_point(self, landmarks, idx, w, h):
-        lm = landmarks[idx]
-        return (lm.x * w, lm.y * h)
+        # baseline (first window)
+        self.baseline = None
 
-    # -----------------------------
-    # Eye Aspect Ratio (EAR)
-    # -----------------------------
-    def eye_aspect_ratio(self, landmarks, eye_indices, w, h):
-        p = [self._get_point(landmarks, i, w, h) for i in eye_indices]
+    # -------------------------------------------------
+    # Utility
+    # -------------------------------------------------
+    def _zscore(self, values):
+        mean = np.mean(values)
+        std = np.std(values) + 1e-6
+        return (values[-1] - mean) / std
 
-        vertical_1 = self._euclidean(p[1], p[5])
-        vertical_2 = self._euclidean(p[2], p[4])
-        horizontal = self._euclidean(p[0], p[3])
+    # -------------------------------------------------
+    # Emotional Flags (Phase 4.5)
+    # -------------------------------------------------
+    def emotional_flags(self, feature_window):
+        """
+        feature_window: dict with latest features
+        Returns: dict with stress, flat affect, arousal flags
+        """
 
-        ear = (vertical_1 + vertical_2) / (2.0 * horizontal)
-        return ear
+        # Update rolling buffers
+        self.feature_history["blink"].append(feature_window["blink"])
+        self.feature_history["ear"].append(feature_window["ear"])
+        self.feature_history["jaw"].append(feature_window["jaw"])
+        self.feature_history["au12"].append(feature_window["au12"])
+        self.feature_history["au15"].append(feature_window["au15"])
+        self.feature_history["au4_vel"].append(feature_window["au4_vel"])
 
-    # -----------------------------
-    # Mouth Opening Ratio (MOR)
-    # -----------------------------
-    def mouth_opening_ratio(self, landmarks, w, h):
-        upper = self._get_point(landmarks, 13, w, h)
-        lower = self._get_point(landmarks, 14, w, h)
-        left = self._get_point(landmarks, 78, w, h)
-        right = self._get_point(landmarks, 308, w, h)
+        # Wait until window fills
+        if len(self.feature_history["blink"]) < self.window_size:
+            return None
 
-        vertical = self._euclidean(upper, lower)
-        horizontal = self._euclidean(left, right)
+        # Establish baseline once
+        if self.baseline is None:
+            self.baseline = {
+                k: np.mean(v) for k, v in self.feature_history.items()
+            }
 
-        mor = vertical / horizontal
-        return mor
+        # ---------------------------
+        # Z-score features
+        # ---------------------------
+        blink_z = self._zscore(np.array(self.feature_history["blink"]))
+        ear_var = np.var(self.feature_history["ear"])
+        jaw_rigidity = 1.0 - np.std(self.feature_history["jaw"])
 
-    # -----------------------------
-    # Eyebrow Displacement
-    # -----------------------------
-    def eyebrow_displacement(self, landmarks, brow_indices, eye_center_idx, w, h):
-        brow_points = [self._get_point(landmarks, i, w, h) for i in brow_indices]
-        brow_y = np.mean([p[1] for p in brow_points])
+        # ---------------------------
+        # Flags (LOCKED FORMULAS)
+        # ---------------------------
 
-        eye_center = self._get_point(landmarks, eye_center_idx, w, h)
+        # Stress proxy
+        stress_flag = min(
+            1.0,
+            0.5 * blink_z +
+            0.3 * jaw_rigidity +
+            0.2 * ear_var
+        )
 
-        displacement = (eye_center[1] - brow_y) / h
-        return displacement
+        # Flat affect proxy
+        au12_mean = np.mean(self.feature_history["au12"])
+        au15_mean = np.mean(self.feature_history["au15"])
+        flat_affect_flag = 1.0 - np.mean([au12_mean, au15_mean])
 
-    # -----------------------------
-    # Jaw Drop Ratio
-    # -----------------------------
-    def jaw_drop(self, landmarks, w, h):
-        chin = self._get_point(landmarks, 152, w, h)
-        upper_lip = self._get_point(landmarks, 13, w, h)
+        # Arousal proxy
+        arousal_flag = min(
+            1.0,
+            np.mean(self.feature_history["au4_vel"]) * 2.0
+        )
 
-        jaw_drop = self._euclidean(chin, upper_lip) / h
-        return jaw_drop
+        return {
+            "stress_flag": float(np.clip(stress_flag, 0.0, 1.0)),
+            "flat_affect_flag": float(np.clip(flat_affect_flag, 0.0, 1.0)),
+            "arousal_flag": float(np.clip(arousal_flag, 0.0, 1.0))
+        }

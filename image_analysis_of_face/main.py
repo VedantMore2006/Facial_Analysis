@@ -47,8 +47,44 @@ def main():
                 mor = extractor.mouth_opening_ratio(landmarks.landmark, w, h)
                 jaw = extractor.jaw_drop(landmarks.landmark, w, h)
 
-                # Prepare features dictionary for temporal processing
+                # Extract additional features for emotional analysis
+                blink_signal = 1.0 if (ear_l + ear_r) / 2.0 < 0.2 else 0.0  # Simple blink detection
+                au12_intensity = extractor.action_unit_12(landmarks.landmark, w, h) if hasattr(extractor, 'action_unit_12') else 0.0
+                au15_intensity = extractor.action_unit_15(landmarks.landmark, w, h) if hasattr(extractor, 'action_unit_15') else 0.0
+                au4_velocity = extractor.action_unit_4_velocity(landmarks.landmark, w, h) if hasattr(extractor, 'action_unit_4_velocity') else 0.0
+
+                # Prepare features dictionary for emotional flags
                 features = {
+                    "ear": (ear_l + ear_r) / 2.0,
+                    "blink": blink_signal,
+                    "jaw": jaw,
+                    "au12": au12_intensity,
+                    "au15": au15_intensity,
+                    "au4_vel": au4_velocity
+                }
+
+                # Calculate emotional flags
+                flags = extractor.emotional_flags(features)
+
+                if flags:
+                    display = (
+                        f"🟡 Stress: {flags['stress_flag']:.2f}   "
+                        f"📉 Flat Affect: {flags['flat_affect_flag']:.2f}   "
+                        f"⚡ Arousal: {flags['arousal_flag']:.2f}"
+                    )
+
+                    cv2.putText(
+                        annotated,
+                        display,
+                        (10, 60),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.55,
+                        (0, 255, 255),
+                        2
+                    )
+
+                # Prepare features for temporal processing
+                temporal_features = {
                     "ear_l": ear_l,
                     "ear_r": ear_r,
                     "mor": mor,
@@ -56,8 +92,8 @@ def main():
                 }
 
                 # Update baseline model and normalize current features
-                baseline.update(features)
-                normalized = baseline.normalize(features)
+                baseline.update(temporal_features)
+                normalized = baseline.normalize(temporal_features)
 
                 # If normalized features are available (after warmup), aggregate temporally
                 if normalized:
