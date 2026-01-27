@@ -1,0 +1,264 @@
+.signup-page {
+  background-color: #a4c4b5;
+  width: 100%;
+  min-width: 1280px;
+  min-height: 861px;
+  position: relative;
+}
+
+.signup-page .text-wrapper {
+  position: absolute;
+  top: 59px;
+  left: 138px;
+  font-family: "Itim-Regular", Helvetica;
+  font-weight: 400;
+  color: #2d5a45;
+  font-size: 36px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .group {
+  position: absolute;
+  top: 50px;
+  left: 1020px;
+  width: 167px;
+  height: 43px;
+  background-color: #000000;
+  border-radius: 5px;
+}
+
+.signup-page .div {
+  position: absolute;
+  top: 141px;
+  left: 138px;
+  font-family: "Inter-Bold", Helvetica;
+  font-weight: 700;
+  color: #000000;
+  font-size: 48px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.signup-page .text-wrapper-2 {
+  position: absolute;
+  top: 224px;
+  left: 138px;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #000000;
+  font-size: 20px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .rectangle {
+  top: 273px;
+  width: 445px;
+  height: 47px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  position: absolute;
+  left: 138px;
+}
+
+.signup-page .rectangle-2 {
+  top: 399px;
+  width: 445px;
+  height: 47px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  position: absolute;
+  left: 138px;
+}
+
+.signup-page .rectangle-3 {
+  top: 508px;
+  width: 445px;
+  height: 47px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  position: absolute;
+  left: 138px;
+}
+
+.signup-page .rectangle-4 {
+  top: 660px;
+  width: 445px;
+  height: 47px;
+  background-color: #000000;
+  border-radius: 5px;
+  position: absolute;
+  left: 138px;
+}
+
+.signup-page .line {
+  position: absolute;
+  top: 319px;
+  left: 387px;
+  width: 131px;
+  height: 1px;
+  object-fit: cover;
+}
+
+.signup-page .text-wrapper-3 {
+  top: 288px;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #00000057;
+  position: absolute;
+  left: 166px;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .text-wrapper-4 {
+  position: absolute;
+  top: 358px;
+  left: 147px;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #000000;
+  font-size: 18px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.signup-page .text-wrapper-5 {
+  position: absolute;
+  top: 472px;
+  left: 138px;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #000000;
+  font-size: 18px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.signup-page .text-wrapper-6 {
+  position: absolute;
+  top: 603px;
+  left: 453px;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #2d5a45;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .text-wrapper-7 {
+  position: absolute;
+  top: 603px;
+  left: 166px;
+  font-family: "Inter-Medium", Helvetica;
+  font-weight: 500;
+  color: #000000;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .text-wrapper-8 {
+  position: absolute;
+  top: 671px;
+  left: 334px;
+  font-family: "Inter-Medium", Helvetica;
+  font-weight: 500;
+  color: #ffffff;
+  font-size: 20px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .basil-eye-closed {
+  position: absolute;
+  top: 519px;
+  left: 531px;
+  width: 29px;
+  height: 29px;
+}
+
+.signup-page .vector {
+  position: absolute;
+  width: 76.12%;
+  height: 72.92%;
+  top: 13.62%;
+  left: 13.46%;
+}
+
+.signup-page .img {
+  position: absolute;
+  width: 51.76%;
+  height: 43.38%;
+  top: 22.92%;
+  left: 10.42%;
+}
+
+.signup-page .text-wrapper-9 {
+  top: 523px;
+  font-family: "Inter-Medium", Helvetica;
+  font-weight: 500;
+  color: #00000040;
+  position: absolute;
+  left: 166px;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .text-wrapper-10 {
+  position: absolute;
+  top: 414px;
+  left: 170px;
+  font-family: "Inter-Medium", Helvetica;
+  font-weight: 500;
+  color: #00000040;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.signup-page .rectangle-5 {
+  top: 603px;
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  border: 0px none;
+  position: absolute;
+  left: 138px;
+}
+
+.signup-page .reshot-illustration {
+  position: absolute;
+  top: 260px;
+  left: 752px;
+  width: 450px;
+  height: 371px;
+  object-fit: cover;
+}
+
+.signup-page .text-wrapper-11 {
+  position: absolute;
+  top: 60px;
+  left: 1077px;
+  width: 118px;
+  font-family: "Inter-Bold", Helvetica;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 20px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}

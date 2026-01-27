@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Counselors</title>
+</head>
+<body>
+    <h2>All Counselors</h2>
+
+    <ul>
+        {% for item in counselor_data %}
+            <li>
+                <strong>{{ item.counselor.name }}</strong>
+                ({{ item.counselor.specialization }}) —
+                {{ item.count }} clients
+                |
+                <a href="/counselor/{{ item.counselor.id }}/">View</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="/clients/">View all clients</a></p>
+</body>
+</html>

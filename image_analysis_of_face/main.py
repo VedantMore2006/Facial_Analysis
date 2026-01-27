@@ -6,6 +6,7 @@ import cv2
 from input.video_source import VideoSource
 from processing.landmark_detection import FaceLandmarkDetector
 from processing.feature_extraction import FeatureExtractor
+from output.csv_logger import CSVLogger
 
 # Temporal processing: baseline normalization and windowed aggregation.
 from temporal.baseline import BaselineNormalizer
@@ -28,6 +29,7 @@ def main():
     video = VideoSource(source=0, target_fps=10)
     detector = FaceLandmarkDetector()
     extractor = FeatureExtractor()
+    logger = CSVLogger(filename="facial_signals.csv", rate_hz=5)
 
     try:
         while True:
@@ -48,14 +50,15 @@ def main():
                 jaw = extractor.jaw_drop(landmarks.landmark, w, h)
 
                 # Extract additional features for emotional analysis
-                blink_signal = 1.0 if (ear_l + ear_r) / 2.0 < 0.2 else 0.0  # Simple blink detection
+                ear_mean = (ear_l + ear_r) / 2.0
+                blink_signal = max(0.0, 1.0 - ear_mean)
                 au12_intensity = extractor.action_unit_12(landmarks.landmark, w, h) if hasattr(extractor, 'action_unit_12') else 0.0
                 au15_intensity = extractor.action_unit_15(landmarks.landmark, w, h) if hasattr(extractor, 'action_unit_15') else 0.0
                 au4_velocity = extractor.action_unit_4_velocity(landmarks.landmark, w, h) if hasattr(extractor, 'action_unit_4_velocity') else 0.0
 
                 # Prepare features dictionary for emotional flags
                 features = {
-                    "ear": (ear_l + ear_r) / 2.0,
+                    "ear": ear_mean,
                     "blink": blink_signal,
                     "jaw": jaw,
                     "au12": au12_intensity,
@@ -82,6 +85,18 @@ def main():
                         (0, 255, 255),
                         2
                     )
+
+                    # Log data if normalized features are available
+                    if normalized:
+                        log_data = {
+                            "ear": normalized["ear_l"],
+                            "mouth": normalized["mor"],
+                            "jaw": normalized["jaw"],
+                            "stress": flags["stress_flag"],
+                            "flat": flags["flat_affect_flag"],
+                            "arousal": flags["arousal_flag"]
+                        }
+                        logger.log(log_data)
 
                 # Prepare features for temporal processing
                 temporal_features = {
