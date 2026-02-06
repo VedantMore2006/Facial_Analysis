@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Consent</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="card">
+  <h2>User Consent</h2>
+
+  <p>
+    This system uses your camera to extract facial movement features.
+    No images or videos are stored. Processing happens locally.
+  </p>
+
+  <label>
+    <input type="checkbox" id="consentBox">
+    I agree to the terms and conditions
+  </label>
+
+  <br><br>
+
+  <button id="startBtn" disabled>Start Analysis</button>
+  <button id="stopBtn" disabled>Stop Analysis</button>
+
+  <p id="statusText">Status: Idle</p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
