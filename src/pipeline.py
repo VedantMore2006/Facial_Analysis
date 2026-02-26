@@ -23,6 +23,8 @@ from src.logger import LandmarkLogger
 from config import BaselineConfig, DebugConfig
 from src.feature_engine.au12 import compute_au12
 from src.baseline import BaselineManager
+from src.smoothing import MovingAverage
+from src.scaler import scale_value
 import os
 
 os.environ["QT_QPA_PLATFORM"] = "xcb"
@@ -35,6 +37,8 @@ def run_pipeline():
 
     baseline_manager = BaselineManager()
     baseline_finalized = False
+
+    au12_smoother = MovingAverage(window_size=5)
 
     frame_index = 0
     session_start = time.time()
@@ -59,9 +63,10 @@ def run_pipeline():
 
             # Raw feature computation
             au12_raw = compute_au12(subset)
+            au12_smoothed = au12_smoother.update(au12_raw)
 
             feature_dict = {
-                "au12": au12_raw
+                "au12": au12_smoothed
             }
 
             # Baseline collection or deviation phase
@@ -70,9 +75,15 @@ def run_pipeline():
 
                 if current_time > baseline_end_time:
                     baseline_manager.finalize()
+                
+                au12_scaled = 0.5  # neutral during baseline
             else:
-                # Later: deviation computation
-                pass
+                # Deviation computation
+                stats = baseline_manager.get_stats()
+                mu = stats["au12"]["mu"]
+                sigma = stats["au12"]["sigma"]
+
+                au12_scaled = scale_value(au12_smoothed, mu, sigma)
 
             logger.log(frame_index, timestamp_ms, subset)
 
@@ -88,6 +99,17 @@ def run_pipeline():
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1,
                 (0, 255, 0) if phase == "BASELINE" else (0, 0, 255),
+                2
+            )
+
+            # Display scaled AU12 value
+            cv2.putText(
+                frame,
+                f"AU12: {au12_scaled:.3f}",
+                (20, 80),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255, 255, 0),
                 2
             )
 
