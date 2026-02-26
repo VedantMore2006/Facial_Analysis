@@ -34,7 +34,7 @@ class FaceMeshDetector:
         self.landmark_style = mp_drawing.DrawingSpec(
             color=(0, 255, 0),
             thickness=1,
-            circle_radius=1   # 👈 reduced radius
+            circle_radius=1  # 👈 reduced radius
         )
 
         self.connection_style = mp_drawing.DrawingSpec(

@@ -1,57 +1,64 @@
-# /home/vedant/Facial_analysis/main.py
+# from src.camera import Camera
+# from src.face_mesh import FaceMeshDetector
+# import cv2
+# import os
+# from config import DebugConfig
+# from src.landmark_processor import extract_subset
+# from src.logger import LandmarkLogger
+# import time
+# os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-# Main entry point for Facial Analysis
-# Main entry point for Facial Analysis
+# logger = LandmarkLogger()
+# frame_index = 0
 
-from src.camera import Camera
-from src.face_mesh import FaceMeshDetector
-import cv2
-import os
-import mediapipe as mp
+# cam = Camera()
+# detector = FaceMeshDetector()
 
-# Wayland compatibility
-os.environ["QT_QPA_PLATFORM"] = "xcb"
+# saved = False  # prevent multiple saves
 
-mp_drawing = mp.solutions.drawing_utils
-mp_face_mesh = mp.solutions.face_mesh
-
-# Initialize camera
-cam = Camera()
-
-
-
-# Initialize face mesh detector  👈 THIS WAS MISSING
-detector = FaceMeshDetector()
-
-while True:
-    ret, frame = cam.read()
-    if not ret:
-        break
-
-    landmarks = detector.process(frame)
-
-    if landmarks is not None:
-        print(len(landmarks.landmark))
-
-    for lm in landmarks.landmark:
-        x = int(lm.x * frame.shape[1])
-        y = int(lm.y * frame.shape[0])
-        cv2.circle(frame, (x, y), 1, (0, 255, 0), -1)
+# while True:
+#     ret, frame = cam.read()
+#     if not ret:
+#         break
     
-    if landmarks:
-        mp_drawing.draw_landmarks(
-            frame,
-            landmarks,
-            mp_face_mesh.FACEMESH_CONTOURS
-        )
 
-    cv2.imshow("Test", frame)
+#     landmarks = detector.process(frame)
 
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
-        break
+#     current_time = int(time.time() * 1000)
 
-print("Detected FPS:", cam.get_fps())
+#     if landmarks:
+#         subset = extract_subset(landmarks)
+#         logger.log(frame_index, current_time, subset)
+#     frame_index += 1
 
-cam.release()
-cv2.destroyAllWindows()
+#     if landmarks:
+#         if DebugConfig.SHOW_LANDMARKS:
+#             detector.draw(frame, landmarks)
+
+#         # Save first valid frame with landmarks
+#         if not saved:
+#             os.makedirs("data", exist_ok=True)
+#             cv2.imwrite("data/test_landmarks.jpg", frame)
+#             print("Saved test frame to data/test_landmarks.jpg")
+#             saved = True
+
+#     cv2.imshow("Test", frame)
+
+#     key = cv2.waitKey(1) & 0xFF
+#     if key == ord("q"):
+#         break
+
+# print("Detected FPS:", cam.get_fps())
+# logger.close()
+# cam.release()
+# cv2.destroyAllWindows()
+
+"""
+Main entry point.
+No logic should live here.
+"""
+
+from src.pipeline import run_pipeline
+
+if __name__ == "__main__":
+    run_pipeline()
