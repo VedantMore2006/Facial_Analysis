@@ -25,7 +25,6 @@ from src.feature_engine.au12 import compute_au12
 from src.baseline import BaselineManager
 from src.smoothing import MovingAverage
 from src.scaler import scale_value
-from src.plot_utils import plot_signal
 import os
 
 os.environ["QT_QPA_PLATFORM"] = "xcb"
@@ -40,10 +39,6 @@ def run_pipeline():
     baseline_finalized = False
 
     au12_smoother = MovingAverage(window_size=5)
-
-    au12_raw_list = []
-    au12_smooth_list = []
-    au12_scaled_list = []
 
     frame_index = 0
     session_start = time.time()
@@ -90,10 +85,6 @@ def run_pipeline():
 
                 au12_scaled = scale_value(au12_smoothed, mu, sigma)
 
-            au12_raw_list.append(au12_raw)
-            au12_smooth_list.append(au12_smoothed)
-            au12_scaled_list.append(au12_scaled)
-
             logger.log(frame_index, timestamp_ms, subset)
 
             if DebugConfig.SHOW_LANDMARKS:
@@ -133,7 +124,5 @@ def run_pipeline():
     print("Session ended.")
     logger.close()
     print("Detected FPS:", cam.get_fps())
-    if au12_raw_list:
-        plot_signal(au12_raw_list, au12_smooth_list, au12_scaled_list, "AU12")
     cam.release()
     cv2.destroyAllWindows()
