@@ -18,9 +18,9 @@ Does NOT:
 
 import mediapipe as mp
 import cv2
+from src.landmark_processor import LANDMARK_SUBSET
 
 mp_face_mesh = mp.solutions.face_mesh
-mp_drawing = mp.solutions.drawing_utils
 
 class FaceMeshDetector:
     def __init__(self):
@@ -28,18 +28,6 @@ class FaceMeshDetector:
             static_image_mode=False,
             max_num_faces=1,
             refine_landmarks=True
-        )
-
-        # Clean drawing style
-        self.landmark_style = mp_drawing.DrawingSpec(
-            color=(0, 255, 0),
-            thickness=1,
-            circle_radius=1  # 👈 reduced radius
-        )
-
-        self.connection_style = mp_drawing.DrawingSpec(
-            color=(0, 200, 0),
-            thickness=1
         )
 
     def process(self, frame):
@@ -51,10 +39,16 @@ class FaceMeshDetector:
         return None
 
     def draw(self, frame, landmarks):
-        mp_drawing.draw_landmarks(
-            frame,
-            landmarks,
-            mp_face_mesh.FACEMESH_TESSELATION,  # Full mesh
-            landmark_drawing_spec=self.landmark_style,
-            connection_drawing_spec=self.connection_style
-        )
+        """
+        Draw only the landmarks that are actually used in feature computation.
+        Much cleaner than full 478-point tessellation.
+        """
+        h, w, _ = frame.shape
+        
+        for idx in LANDMARK_SUBSET:
+            lm = landmarks.landmark[idx]
+            x = int(lm.x * w)
+            y = int(lm.y * h)
+            
+            # Draw each used landmark as a small circle
+            cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)

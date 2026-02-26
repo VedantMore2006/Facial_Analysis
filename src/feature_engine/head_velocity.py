@@ -1,29 +1,32 @@
-# Head velocity module
-"""
-head_velocity.py
-
-Compute head movement speed using nose tip displacement.
-"""
-
 import numpy as np
 
 
-class HeadVelocity:
+class HeadYawVelocity:
+
     def __init__(self):
-        self.prev_position = None
+        self.prev_yaw = None
 
-    def compute(self, subset):
+    def compute_yaw(self, subset):
 
-        x, y = subset[1]  # Nose tip
+        nx, ny = subset[1]      # nose
+        lx, ly = subset[33]     # left eye outer
+        rx, ry = subset[263]    # right eye outer
 
-        if self.prev_position is None:
-            self.prev_position = (x, y)
+        dist_left = np.sqrt((nx - lx)**2 + (ny - ly)**2)
+        dist_right = np.sqrt((nx - rx)**2 + (ny - ry)**2)
+
+        return dist_left - dist_right
+
+    def compute_velocity(self, subset):
+
+        yaw = self.compute_yaw(subset)
+
+        if self.prev_yaw is None:
+            self.prev_yaw = yaw
             return 0
 
-        px, py = self.prev_position
+        velocity = abs(yaw - self.prev_yaw)
 
-        velocity = np.sqrt((x-px)**2 + (y-py)**2)
-
-        self.prev_position = (x, y)
+        self.prev_yaw = yaw
 
         return velocity

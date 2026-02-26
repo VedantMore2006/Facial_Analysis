@@ -22,7 +22,8 @@ from src.landmark_processor import extract_subset
 from src.logger import LandmarkLogger
 from config import BaselineConfig, DebugConfig
 from src.feature_engine.au12 import compute_au12
-from src.feature_engine.expressivity import compute_expressivity
+from src.feature_engine.expressivity import Expressivity
+from src.feature_engine.head_velocity import HeadYawVelocity
 from src.baseline import BaselineManager
 from src.smoothing import MovingAverage
 from src.scaler import scale_value
@@ -43,6 +44,9 @@ def run_pipeline():
 
     au12_smoother = MovingAverage(window_size=5)
     expressivity_smoother = MovingAverage(window_size=5)
+    expressivity_engine = Expressivity()
+    head_engine = HeadYawVelocity()
+    head_smoother = MovingAverage(window_size=5)
 
     au12_raw_list = []
     au12_smooth_list = []
@@ -51,6 +55,10 @@ def run_pipeline():
     expressivity_raw_list = []
     expressivity_smooth_list = []
     expressivity_scaled_list = []
+    
+    head_raw_list = []
+    head_smooth_list = []
+    head_scaled_list = []
 
     frame_index = 0
     session_start = time.time()
@@ -77,18 +85,16 @@ def run_pipeline():
             au12_raw = compute_au12(subset)
             au12_smoothed = au12_smoother.update(au12_raw)
             
-            # Prepare baseline positions for expressivity
-            baseline_positions = baseline_manager.get_baseline_positions() if baseline_manager.locked else None
-            if baseline_positions:
-                expressivity_raw = compute_expressivity(subset, baseline_positions)
-                expressivity_smoothed = expressivity_smoother.update(expressivity_raw)
-            else:
-                expressivity_raw = 0.0
-                expressivity_smoothed = 0.0
+            expressivity_raw = expressivity_engine.compute(subset)
+            expressivity_smoothed = expressivity_smoother.update(expressivity_raw)
+            
+            head_raw = head_engine.compute_velocity(subset)
+            head_smoothed = head_smoother.update(head_raw)
 
             feature_dict = {
                 "au12": au12_smoothed,
-                "expressivity": expressivity_smoothed
+                "expressivity": expressivity_smoothed,
+                "head_velocity": head_smoothed
             }
 
             # Baseline collection or deviation phase
@@ -101,6 +107,7 @@ def run_pipeline():
 
                 au12_scaled = 0.5  # neutral during baseline
                 expressivity_scaled = 0.5  # neutral during baseline
+                head_scaled = 0.5  # neutral during baseline
             else:
                 # Deviation computation
                 stats_au12 = baseline_manager.get_feature_stats("au12")
@@ -112,6 +119,11 @@ def run_pipeline():
                 mu_expr = stats_expr["mu"]
                 sigma_expr = stats_expr["sigma"]
                 expressivity_scaled = scale_value(expressivity_smoothed, mu_expr, sigma_expr)
+                
+                stats_head = baseline_manager.get_feature_stats("head_velocity")
+                mu_head = stats_head["mu"]
+                sigma_head = stats_head["sigma"]
+                head_scaled = scale_value(head_smoothed, mu_head, sigma_head)
 
             logger.log(frame_index, timestamp_ms, subset)
 
@@ -151,6 +163,17 @@ def run_pipeline():
                 (0, 255, 255),
                 2
             )
+            
+            # Display scaled Head Velocity value
+            cv2.putText(
+                frame,
+                f"Head Velocity: {head_scaled:.3f}",
+                (20, 160),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255, 0, 255),
+                2
+            )
 
             au12_raw_list.append(au12_raw)
             au12_smooth_list.append(au12_smoothed)
@@ -159,6 +182,10 @@ def run_pipeline():
             expressivity_raw_list.append(expressivity_raw)
             expressivity_smooth_list.append(expressivity_smoothed)
             expressivity_scaled_list.append(expressivity_scaled)
+            
+            head_raw_list.append(head_raw)
+            head_smooth_list.append(head_smoothed)
+            head_scaled_list.append(head_scaled)
 
         cv2.imshow("Facial Analysis", frame)
 
@@ -205,4 +232,16 @@ def run_pipeline():
     plt.title("Expressivity Signal")
     plt.savefig(expr_plot_file, dpi=100, bbox_inches="tight")
     print(f"Expressivity plot saved: {expr_plot_file}")
+    plt.show()
+    
+    # Plot Head Velocity
+    head_plot_file = plots_dir / f"head_velocity_signal_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(head_raw_list, label="Raw")
+    plt.plot(head_smooth_list, label="Smoothed")
+    plt.plot(head_scaled_list, label="Scaled")
+    plt.legend()
+    plt.title("Head Velocity Signal")
+    plt.savefig(head_plot_file, dpi=100, bbox_inches="tight")
+    print(f"Head Velocity plot saved: {head_plot_file}")
     plt.show()

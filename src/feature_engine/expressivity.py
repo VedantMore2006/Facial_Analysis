@@ -1,13 +1,4 @@
-# Expressivity module
-"""
-expressivity.py
-
-Compute overall facial movement amplitude per frame.
-Normalized by IOD.
-"""
-
 import numpy as np
-
 
 EXPRESSIVE_POINTS = [
     70, 63, 105, 66, 107,
@@ -16,18 +7,28 @@ EXPRESSIVE_POINTS = [
     50, 280
 ]
 
+class Expressivity:
 
-def compute_expressivity(subset, baseline_positions):
+    def __init__(self):
+        self.prev_subset = None
 
-    displacements = []
+    def compute(self, subset):
 
-    for idx in EXPRESSIVE_POINTS:
-        x, y = subset[idx]
-        bx, by = baseline_positions[idx]
+        if self.prev_subset is None:
+            self.prev_subset = subset
+            return 0
 
-        dx = x - bx
-        dy = y - by
+        displacements = []
 
-        displacements.append(np.sqrt(dx*dx + dy*dy))
+        for idx in EXPRESSIVE_POINTS:
+            x, y = subset[idx]
+            px, py = self.prev_subset[idx]
 
-    return np.mean(displacements)
+            dx = x - px
+            dy = y - py
+
+            displacements.append(np.sqrt(dx*dx + dy*dy))
+
+        self.prev_subset = subset
+
+        return np.mean(displacements)
