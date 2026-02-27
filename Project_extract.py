@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+# ============================================================================
+# PROJECT EXTRACTION UTILITY
+# ============================================================================
+# Purpose: Generate a comprehensive report of the entire Python codebase
+# Output: Single text file containing:
+#         1. Visual tree structure of project directories/files
+#         2. Complete content of all Python files
+#         3. Summary statistics
+# Usage: python Project_extract.py
+# Use Case: Code review, documentation, sharing codebase overview
+# ============================================================================
+
 """
 Extract all Python files with their content and project structure into a single text file.
 """
@@ -9,7 +21,22 @@ from pathlib import Path
 
 
 def get_project_structure(root_dir, prefix="", max_depth=10, current_depth=0, ignore_dirs=None):
-    """Generate a text representation of the project structure."""
+    """
+    Generate a text representation of the project structure.
+    
+    Creates a tree-style visualization of directories and files.
+    Recursively traverses subdirectories while respecting depth limits.
+    
+    Args:
+        root_dir: Starting directory path
+        prefix: String prefix for tree indentation
+        max_depth: Maximum recursion depth to prevent infinite loops
+        current_depth: Current recursion level
+        ignore_dirs: Set of directory names to skip
+    
+    Returns:
+        String containing formatted directory tree
+    """
     if ignore_dirs is None:
         ignore_dirs = {".git", "__pycache__", ".pytest_cache", "*.egg-info", ".venv", "venv", "env"}
     
@@ -56,7 +83,19 @@ def get_project_structure(root_dir, prefix="", max_depth=10, current_depth=0, ig
 
 
 def extract_python_files(root_dir, output_file):
-    """Extract all Python files and their content."""
+    """
+    Extract all Python files and their content.
+    
+    Main extraction function that:
+    1. Walks through directory tree to find all .py files
+    2. Generates project structure visualization
+    3. Writes formatted output with all file contents
+    4. Provides summary statistics
+    
+    Args:
+        root_dir: Root directory to scan
+        output_file: Path to output text file
+    """
     py_files = []
     
     # Collect all Python files
