@@ -49,8 +49,8 @@ Thumbs.db
 .env.*
 
 # Project artifacts
-/data/
-/plots/
+
+
 
 # Media outputs
 *.mp4
@@ -60,7 +60,7 @@ Thumbs.db
 *.pyc
 # Images generated during runs
 *.jpg
-*.png
+
 
 # Misc
 *.tmp
