@@ -7,7 +7,7 @@ All tunable runtime parameters live here.
 """
 
 class CameraConfig:
-    DEVICE_ID = 0
+    DEVICE_ID = 2
     WIDTH = 640
     HEIGHT = 480
     FPS = 15

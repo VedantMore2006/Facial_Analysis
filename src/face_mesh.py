@@ -51,4 +51,4 @@ class FaceMeshDetector:
             y = int(lm.y * h)
             
             # Draw each used landmark as a small circle
-            cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
+            cv2.circle(frame, (x, y), 2, (0, 255, 0), 1)

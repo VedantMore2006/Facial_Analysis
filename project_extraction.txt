@@ -1,0 +1,1363 @@
+================================================================================
+PROJECT EXTRACTION REPORT
+================================================================================
+
+PROJECT STRUCTURE:
+--------------------------------------------------------------------------------
+
+Facial_analysis/
+├── Facial Analysis_screenshot_26.02.2026.png
+├── Project_extract.py
+├── README.md
+├── config.py
+├── main.py
+├── project_extraction.txt
+├── data/
+│   ├── session_1772101355.csv
+│   ├── session_1772101474.csv
+│   ├── session_1772101555.csv
+│   ├── session_1772102805.csv
+│   ├── session_1772102840.csv
+│   ├── session_1772102979.csv
+│   ├── session_1772103289.csv
+│   ├── session_1772103897.csv
+│   ├── session_1772104300.csv
+│   ├── session_1772104842.csv
+│   ├── session_1772107301.csv
+│   ├── session_1772107665.csv
+│   ├── session_1772107842.csv
+│   ├── session_1772108507.csv
+│   ├── session_1772108661.csv
+│   ├── session_1772109472.csv
+│   ├── session_1772109706.csv
+│   ├── session_1772109730.csv
+│   ├── session_1772109872.csv
+│   ├── session_1772110833.csv
+│   ├── session_1772111293.csv
+│   ├── session_1772111905.csv
+│   └── test_landmarks.jpg
+├── docs/
+├── plots/
+│   ├── au12_signal_20260226_173147.png
+│   ├── au12_signal_20260226_173808.png
+│   ├── au12_signal_20260226_174131.png
+│   ├── au12_signal_20260226_175523.png
+│   ├── au12_signal_20260226_180908.png
+│   ├── au12_signal_20260226_181152.png
+│   ├── au12_signal_20260226_181345.png
+│   ├── au12_signal_20260226_181523.png
+│   ├── au12_signal_20260226_183159.png
+│   ├── au12_signal_20260226_183903.png
+│   ├── au12_signal_20260226_185010.png
+│   ├── blink_comparison_20260226_183159.png
+│   ├── blink_comparison_20260226_183903.png
+│   ├── blink_comparison_20260226_185010.png
+│   ├── blink_rate_signal_20260226_183159.png
+│   ├── blink_rate_signal_20260226_183903.png
+│   ├── blink_rate_signal_20260226_185010.png
+│   ├── ear_signal_20260226_183159.png
+│   ├── ear_signal_20260226_183903.png
+│   ├── ear_signal_20260226_185010.png
+│   ├── expressivity_signal_20260226_173808.png
+│   ├── expressivity_signal_20260226_174131.png
+│   ├── expressivity_signal_20260226_175523.png
+│   ├── expressivity_signal_20260226_180908.png
+│   ├── expressivity_signal_20260226_181152.png
+│   ├── expressivity_signal_20260226_181345.png
+│   ├── expressivity_signal_20260226_181523.png
+│   ├── expressivity_signal_20260226_183159.png
+│   ├── expressivity_signal_20260226_183903.png
+│   ├── expressivity_signal_20260226_185010.png
+│   ├── eye_contact_signal_20260226_185010.png
+│   ├── head_velocity_signal_20260226_180908.png
+│   ├── head_velocity_signal_20260226_181152.png
+│   ├── head_velocity_signal_20260226_181345.png
+│   ├── head_velocity_signal_20260226_181523.png
+│   ├── head_velocity_signal_20260226_183159.png
+│   ├── head_velocity_signal_20260226_183903.png
+│   └── head_velocity_signal_20260226_185010.png
+└── src/
+    ├── baseline.py
+    ├── camera.py
+    ├── face_mesh.py
+    ├── feature_vector.py
+    ├── head_pose.py
+    ├── landmark_processor.py
+    ├── logger.py
+    ├── pipeline.py
+    ├── plot_utils.py
+    ├── scaler.py
+    ├── smoothing.py
+    └── feature_engine/
+        ├── au12.py
+        ├── blink.py
+        ├── expressivity.py
+        ├── eye_contact.py
+        └── head_velocity.py
+
+
+================================================================================
+FILE CONTENTS
+================================================================================
+
+
+================================================================================
+FILE: Project_extract.py
+================================================================================
+
+#!/usr/bin/env python3
+"""
+Extract all Python files with their content and project structure into a single text file.
+"""
+
+import os
+import sys
+from pathlib import Path
+
+
+def get_project_structure(root_dir, prefix="", max_depth=10, current_depth=0, ignore_dirs=None):
+    """Generate a text representation of the project structure."""
+    if ignore_dirs is None:
+        ignore_dirs = {".git", "__pycache__", ".pytest_cache", "*.egg-info", ".venv", "venv", "env"}
+    
+    if current_depth >= max_depth:
+        return ""
+    
+    structure = ""
+    try:
+        items = sorted(os.listdir(root_dir))
+    except PermissionError:
+        return ""
+    
+    dirs = []
+    files = []
+    
+    for item in items:
+        # Skip hidden files/dirs and common ignore patterns
+        if item.startswith("."):
+            continue
+        if item in ignore_dirs or any(item.endswith(x.replace("*", "")) for x in ignore_dirs if "*" in x):
+            continue
+        
+        item_path = os.path.join(root_dir, item)
+        if os.path.isdir(item_path):
+            dirs.append(item)
+        else:
+            files.append(item)
+    
+    # Add files first
+    for i, file in enumerate(files):
+        is_last_file = (i == len(files) - 1) and len(dirs) == 0
+        structure += f"{prefix}{'└── ' if is_last_file else '├── '}{file}\n"
+    
+    # Add directories
+    for i, dir_name in enumerate(dirs):
+        is_last = i == len(dirs) - 1
+        structure += f"{prefix}{'└── ' if is_last else '├── '}{dir_name}/\n"
+        
+        dir_path = os.path.join(root_dir, dir_name)
+        extension = "    " if is_last else "│   "
+        structure += get_project_structure(dir_path, prefix + extension, max_depth, current_depth + 1, ignore_dirs)
+    
+    return structure
+
+
+def extract_python_files(root_dir, output_file):
+    """Extract all Python files and their content."""
+    py_files = []
+    
+    # Collect all Python files
+    for root, dirs, files in os.walk(root_dir):
+        # Skip certain directories
+        dirs[:] = [d for d in dirs if d not in {".git", "__pycache__", ".pytest_cache", ".venv", "venv", "env"}]
+        
+        for file in files:
+            if file.endswith(".py"):
+                file_path = os.path.join(root, file)
+                py_files.append(file_path)
+    
+    # Sort files for consistent output
+    py_files.sort()
+    
+    # Write to output file
+    with open(output_file, "w", encoding="utf-8") as out:
+        # Header
+        out.write("=" * 80 + "\n")
+        out.write("PROJECT EXTRACTION REPORT\n")
+        out.write("=" * 80 + "\n\n")
+        
+        # Project Structure
+        out.write("PROJECT STRUCTURE:\n")
+        out.write("-" * 80 + "\n\n")
+        out.write(f"{os.path.basename(root_dir)}/\n")
+        out.write(get_project_structure(root_dir))
+        out.write("\n\n")
+        
+        # File Contents
+        out.write("=" * 80 + "\n")
+        out.write("FILE CONTENTS\n")
+        out.write("=" * 80 + "\n\n")
+        
+        for file_path in py_files:
+            # Calculate relative path
+            rel_path = os.path.relpath(file_path, root_dir)
+            
+            # Write file header
+            out.write(f"\n{'=' * 80}\n")
+            out.write(f"FILE: {rel_path}\n")
+            out.write(f"{'=' * 80}\n\n")
+            
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    out.write(content)
+            except Exception as e:
+                out.write(f"[ERROR] Could not read file: {str(e)}\n")
+            
+            out.write("\n")
+        
+        # Summary
+        out.write("\n" + "=" * 80 + "\n")
+        out.write(f"SUMMARY: {len(py_files)} Python files extracted\n")
+        out.write("=" * 80 + "\n")
+    
+    print(f"✓ Extraction complete!")
+    print(f"✓ Total Python files: {len(py_files)}")
+    print(f"✓ Output saved to: {output_file}")
+    print(f"✓ File size: {os.path.getsize(output_file) / 1024:.2f} KB")
+
+
+if __name__ == "__main__":
+    # Get project root (current directory)
+    project_root = os.getcwd()
+    
+    # Output file
+    output_filename = "project_extraction.txt"
+    output_path = os.path.join(project_root, output_filename)
+    
+    print(f"Extracting Python files from: {project_root}")
+    print(f"Output file: {output_path}\n")
+    
+    extract_python_files(project_root, output_path)
+
+
+================================================================================
+FILE: config.py
+================================================================================
+
+# /home/vedant/Facial_analysis/config.py
+
+# Configuration file for Facial Analysis
+"""
+Central configuration file.
+All tunable runtime parameters live here.
+"""
+
+class CameraConfig:
+    DEVICE_ID = 0
+    WIDTH = 640
+    HEIGHT = 480
+    FPS = 15
+
+class BaselineConfig:
+    ENABLE_BASELINE = True
+    DURATION_SECONDS = 30
+    SIGMA_FLOOR = 1e-6
+
+class CSVConfig:
+    OUTPUT_DIR = "data/"
+    WRITE_PER_FRAME = True
+
+class DebugConfig:
+    SHOW_LANDMARKS = True
+    SHOW_FPS = True
+
+================================================================================
+FILE: main.py
+================================================================================
+
+# from src.camera import Camera
+# from src.face_mesh import FaceMeshDetector
+# import cv2
+# import os
+# from config import DebugConfig
+# from src.landmark_processor import extract_subset
+# from src.logger import LandmarkLogger
+# import time
+# os.environ["QT_QPA_PLATFORM"] = "xcb"
+
+# logger = LandmarkLogger()
+# frame_index = 0
+
+# cam = Camera()
+# detector = FaceMeshDetector()
+
+# saved = False  # prevent multiple saves
+
+# while True:
+#     ret, frame = cam.read()
+#     if not ret:
+#         break
+    
+
+#     landmarks = detector.process(frame)
+
+#     current_time = int(time.time() * 1000)
+
+#     if landmarks:
+#         subset = extract_subset(landmarks)
+#         logger.log(frame_index, current_time, subset)
+#     frame_index += 1
+
+#     if landmarks:
+#         if DebugConfig.SHOW_LANDMARKS:
+#             detector.draw(frame, landmarks)
+
+#         # Save first valid frame with landmarks
+#         if not saved:
+#             os.makedirs("data", exist_ok=True)
+#             cv2.imwrite("data/test_landmarks.jpg", frame)
+#             print("Saved test frame to data/test_landmarks.jpg")
+#             saved = True
+
+#     cv2.imshow("Test", frame)
+
+#     key = cv2.waitKey(1) & 0xFF
+#     if key == ord("q"):
+#         break
+
+# print("Detected FPS:", cam.get_fps())
+# logger.close()
+# cam.release()
+# cv2.destroyAllWindows()
+
+"""
+Main entry point.
+No logic should live here.
+"""
+
+from src.pipeline import run_pipeline
+
+if __name__ == "__main__":
+    run_pipeline()
+
+================================================================================
+FILE: src/baseline.py
+================================================================================
+
+"""
+baseline.py
+
+Purpose:
+Personal Session Baseline (PSB) manager.
+
+Responsibilities:
+- Collect feature samples
+- Collect landmark positions
+- Compute μ and σ for each feature
+- Compute baseline mean landmark positions
+- Apply sigma floor
+- Lock baseline
+
+Does NOT:
+- Compute features
+- Apply scaling
+"""
+
+import numpy as np
+from config import BaselineConfig
+
+
+class BaselineManager:
+
+    def __init__(self):
+        self.feature_samples = {}
+        self.landmark_sums = {}
+        self.frame_count = 0
+
+        self.feature_stats = {}
+        self.baseline_positions = {}
+
+        self.locked = False
+
+
+    # ----------------------------
+    # Feature collection
+    # ----------------------------
+
+    def collect_features(self, feature_dict):
+
+        if self.locked:
+            return
+
+        for key, value in feature_dict.items():
+            if key not in self.feature_samples:
+                self.feature_samples[key] = []
+
+            self.feature_samples[key].append(value)
+
+
+    # ----------------------------
+    # Landmark baseline collection
+    # ----------------------------
+
+    def collect_landmarks(self, subset):
+
+        if self.locked:
+            return
+
+        for idx, (x, y) in subset.items():
+
+            if idx not in self.landmark_sums:
+                self.landmark_sums[idx] = [0.0, 0.0]
+
+            self.landmark_sums[idx][0] += x
+            self.landmark_sums[idx][1] += y
+
+        self.frame_count += 1
+
+
+    # ----------------------------
+    # Finalize baseline
+    # ----------------------------
+
+    def finalize(self):
+
+        if self.locked:
+            return
+
+        # Feature stats
+        for key, values in self.feature_samples.items():
+
+            values = np.array(values)
+
+            mu = np.mean(values)
+            sigma = np.std(values)
+            sigma = max(sigma, BaselineConfig.SIGMA_FLOOR)
+
+            self.feature_stats[key] = {
+                "mu": mu,
+                "sigma": sigma
+            }
+
+        # Landmark baseline positions
+        for idx, (sx, sy) in self.landmark_sums.items():
+
+            self.baseline_positions[idx] = (
+                sx / self.frame_count,
+                sy / self.frame_count
+            )
+
+        self.locked = True
+
+        print("Baseline locked.")
+        print("Feature stats:", self.feature_stats)
+
+
+    # ----------------------------
+    # Accessors
+    # ----------------------------
+
+    def get_feature_stats(self, key):
+        return self.feature_stats.get(key, None)
+
+    def get_baseline_positions(self):
+        return self.baseline_positions
+
+================================================================================
+FILE: src/camera.py
+================================================================================
+
+# Camera module
+"""
+camera.py
+
+Purpose:
+Handles webcam initialization and frame retrieval.
+
+Responsibilities:
+- Open camera device
+- Set resolution and FPS
+- Return frames in BGR format
+
+Does NOT:
+- Run face detection
+- Perform feature extraction
+"""
+
+import cv2
+from config import CameraConfig
+
+class Camera:
+    def __init__(self):
+        self.cap = cv2.VideoCapture(CameraConfig.DEVICE_ID)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CameraConfig.WIDTH)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CameraConfig.HEIGHT)
+        self.cap.set(cv2.CAP_PROP_FPS, CameraConfig.FPS)
+
+    def read(self):
+        return self.cap.read()
+
+    def release(self):
+        self.cap.release()
+
+    def get_fps(self):
+        return self.cap.get(cv2.CAP_PROP_FPS)
+
+================================================================================
+FILE: src/face_mesh.py
+================================================================================
+
+"""
+face_mesh.py
+
+Purpose:
+Runs MediaPipe FaceMesh and optionally draws landmarks.
+
+Responsibilities:
+- Convert frame to RGB
+- Run MediaPipe inference
+- Return 478 landmarks
+- Provide clean visualization utility
+
+Does NOT:
+- Compute features
+- Normalize geometry
+- Store landmarks
+"""
+
+import mediapipe as mp
+import cv2
+from src.landmark_processor import LANDMARK_SUBSET
+
+mp_face_mesh = mp.solutions.face_mesh
+
+class FaceMeshDetector:
+    def __init__(self):
+        self.mesh = mp_face_mesh.FaceMesh(
+            static_image_mode=False,
+            max_num_faces=1,
+            refine_landmarks=True
+        )
+
+    def process(self, frame):
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.mesh.process(rgb)
+
+        if results.multi_face_landmarks:
+            return results.multi_face_landmarks[0]
+        return None
+
+    def draw(self, frame, landmarks):
+        """
+        Draw only the landmarks that are actually used in feature computation.
+        Much cleaner than full 478-point tessellation.
+        """
+        h, w, _ = frame.shape
+        
+        for idx in LANDMARK_SUBSET:
+            lm = landmarks.landmark[idx]
+            x = int(lm.x * w)
+            y = int(lm.y * h)
+            
+            # Draw each used landmark as a small circle
+            cv2.circle(frame, (x, y), 2, (0, 255, 0), 1)
+
+================================================================================
+FILE: src/feature_engine/au12.py
+================================================================================
+
+"""
+au12.py
+
+Smile width normalized by Interocular Distance (IOD)
+"""
+
+import numpy as np
+
+
+def compute_iod(subset):
+    # Left eye outer (33) & right eye outer (263)
+    x1, y1 = subset[33]
+    x2, y2 = subset[263]
+
+    return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+
+def compute_au12(subset):
+    x1, y1 = subset[61]
+    x2, y2 = subset[291]
+
+    smile_width = np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+    iod = compute_iod(subset)
+
+    if iod == 0:
+        return 0
+
+    return smile_width / iod
+
+================================================================================
+FILE: src/feature_engine/blink.py
+================================================================================
+
+# Blink detection module
+import numpy as np
+from collections import deque
+
+
+class BlinkDetector:
+
+    def __init__(self, fps, threshold=0.22, min_frames=2, window_seconds=10):
+        self.threshold = threshold
+        self.min_frames = min_frames
+        self.fps = fps
+
+        self.counter = 0
+        self.blink_count = 0
+
+        self.window_frames = int(window_seconds * fps)
+        self.event_buffer = deque(maxlen=self.window_frames)
+
+    # ----------------------------
+    # EAR Calculation
+    # ----------------------------
+
+    def compute_ear(self, eye_points):
+
+        p1, p2, p3, p4, p5, p6 = eye_points
+
+        vertical1 = np.linalg.norm(np.array(p2) - np.array(p6))
+        vertical2 = np.linalg.norm(np.array(p3) - np.array(p5))
+        horizontal = np.linalg.norm(np.array(p1) - np.array(p4))
+
+        if horizontal == 0:
+            return 0
+
+        return (vertical1 + vertical2) / (2.0 * horizontal)
+
+    # ----------------------------
+    # Update Blink State
+    # ----------------------------
+
+    def update(self, subset):
+
+        left_eye = [
+            subset[33], subset[160], subset[158],
+            subset[133], subset[153], subset[144]
+        ]
+
+        right_eye = [
+            subset[362], subset[385], subset[387],
+            subset[263], subset[373], subset[380]
+        ]
+
+        left_ear = self.compute_ear(left_eye)
+        right_ear = self.compute_ear(right_eye)
+
+        ear = (left_ear + right_ear) / 2.0
+
+        blink_event = 0
+
+        if ear < self.threshold:
+            self.counter += 1
+        else:
+            if self.counter >= self.min_frames:
+                blink_event = 1
+                self.blink_count += 1
+            self.counter = 0
+
+        # Store blink events in sliding window
+        self.event_buffer.append(blink_event)
+
+        # Blinks per minute
+        if len(self.event_buffer) == self.window_frames:
+            blinks_in_window = sum(self.event_buffer)
+            blink_rate = (blinks_in_window / len(self.event_buffer)) * self.fps * 60
+        else:
+            blink_rate = 0
+
+        return ear, blink_event, blink_rate
+
+================================================================================
+FILE: src/feature_engine/expressivity.py
+================================================================================
+
+import numpy as np
+
+EXPRESSIVE_POINTS = [
+    70, 63, 105, 66, 107,
+    336, 296, 334, 293, 300,
+    61, 291, 13, 14,
+    50, 280
+]
+
+class Expressivity:
+
+    def __init__(self):
+        self.prev_subset = None
+
+    def compute(self, subset):
+
+        if self.prev_subset is None:
+            self.prev_subset = subset
+            return 0
+
+        displacements = []
+
+        for idx in EXPRESSIVE_POINTS:
+            x, y = subset[idx]
+            px, py = self.prev_subset[idx]
+
+            dx = x - px
+            dy = y - py
+
+            displacements.append(np.sqrt(dx*dx + dy*dy))
+
+        self.prev_subset = subset
+
+        return np.mean(displacements)
+
+================================================================================
+FILE: src/feature_engine/eye_contact.py
+================================================================================
+
+# Eye contact detection module
+from collections import deque
+
+
+class EyeContact:
+
+    def __init__(self, fps, yaw_threshold=0.01, window_seconds=5):
+        self.yaw_threshold = yaw_threshold
+        self.window_frames = int(window_seconds * fps)
+        self.buffer = deque(maxlen=self.window_frames)
+
+    def update(self, yaw_value):
+
+        # Contact if yaw magnitude small
+        contact = 1 if abs(yaw_value) < self.yaw_threshold else 0
+
+        self.buffer.append(contact)
+
+        if len(self.buffer) == 0:
+            return contact, 0
+
+        ratio = sum(self.buffer) / len(self.buffer)
+
+        return contact, ratio
+
+================================================================================
+FILE: src/feature_engine/head_velocity.py
+================================================================================
+
+import numpy as np
+
+
+class HeadYawVelocity:
+
+    def __init__(self):
+        self.prev_yaw = None
+
+    def compute_yaw(self, subset):
+
+        nx, ny = subset[1]      # nose
+        lx, ly = subset[33]     # left eye outer
+        rx, ry = subset[263]    # right eye outer
+
+        dist_left = np.sqrt((nx - lx)**2 + (ny - ly)**2)
+        dist_right = np.sqrt((nx - rx)**2 + (ny - ry)**2)
+
+        return dist_left - dist_right
+
+    def compute_velocity(self, subset):
+
+        yaw = self.compute_yaw(subset)
+
+        if self.prev_yaw is None:
+            self.prev_yaw = yaw
+            return 0
+
+        velocity = abs(yaw - self.prev_yaw)
+
+        self.prev_yaw = yaw
+
+        return velocity
+
+    def get_current_yaw(self):
+        return self.prev_yaw if self.prev_yaw is not None else 0
+
+================================================================================
+FILE: src/feature_vector.py
+================================================================================
+
+# Feature vector module
+
+
+================================================================================
+FILE: src/head_pose.py
+================================================================================
+
+# Head pose estimation module
+
+
+================================================================================
+FILE: src/landmark_processor.py
+================================================================================
+
+# Landmark processing module
+"""
+landmark_processor.py
+
+Purpose:
+Extract selected landmark subset from full 478 mesh.
+
+Responsibilities:
+- Receive MediaPipe landmarks
+- Extract required indices
+- Return normalized x,y coordinates
+
+Does NOT:
+- Compute features
+- Normalize by IOD
+- Apply smoothing
+"""
+
+LANDMARK_SUBSET = sorted(set([
+    61, 291, 13, 14,
+    33, 133, 362, 263,
+    160, 158, 153, 144,
+    385, 387, 373, 380,
+    70, 63, 105, 66, 107,
+    336, 296, 334, 293, 300,
+    50, 280,
+    1, 152,
+    468, 469, 470, 471, 472,
+    473, 474, 475, 476, 477
+]))
+
+def extract_subset(landmarks):
+    """
+    Returns dict:
+    {
+        index: (x, y)
+    }
+    Coordinates are normalized [0,1]
+    """
+
+    subset = {}
+
+    for idx in LANDMARK_SUBSET:
+        lm = landmarks.landmark[idx]
+        subset[idx] = (lm.x, lm.y)
+
+    return subset
+
+================================================================================
+FILE: src/logger.py
+================================================================================
+
+# Logger module
+"""
+logger.py
+
+Purpose:
+Save per-frame landmark subset into CSV.
+
+Responsibilities:
+- Create session file
+- Append frame data
+- Handle header formatting
+
+Does NOT:
+- Compute features
+- Modify data
+"""
+
+import csv
+import os
+import time
+from config import CSVConfig
+
+class LandmarkLogger:
+    def __init__(self):
+        os.makedirs(CSVConfig.OUTPUT_DIR, exist_ok=True)
+
+        timestamp = int(time.time())
+        self.filepath = f"{CSVConfig.OUTPUT_DIR}/session_{timestamp}.csv"
+
+        self.file = open(self.filepath, "w", newline="")
+        self.writer = csv.writer(self.file)
+
+        self.header_written = False
+
+    def log(self, frame_index, timestamp_ms, subset_dict):
+
+        if not self.header_written:
+            header = ["frame_index", "timestamp_ms"]
+
+            for idx in subset_dict.keys():
+                header.append(f"{idx}_x")
+                header.append(f"{idx}_y")
+
+            self.writer.writerow(header)
+            self.header_written = True
+
+        row = [frame_index, timestamp_ms]
+
+        for idx in subset_dict.keys():
+            x, y = subset_dict[idx]
+            row.extend([x, y])
+
+        self.writer.writerow(row)
+
+    def close(self):
+        self.file.close()
+
+================================================================================
+FILE: src/pipeline.py
+================================================================================
+
+"""
+pipeline.py
+
+Purpose:
+Orchestrates full runtime loop.
+
+Responsibilities:
+- Frame loop
+- Landmark extraction
+- Baseline management
+- Logging
+
+Does NOT:
+- Compute feature math
+"""
+
+import time
+import cv2
+from src.camera import Camera
+from src.face_mesh import FaceMeshDetector
+from src.landmark_processor import extract_subset
+from src.logger import LandmarkLogger
+from config import BaselineConfig, DebugConfig
+from src.feature_engine.au12 import compute_au12
+from src.feature_engine.expressivity import Expressivity
+from src.feature_engine.head_velocity import HeadYawVelocity
+from src.feature_engine.blink import BlinkDetector
+from src.feature_engine.eye_contact import EyeContact
+from src.baseline import BaselineManager
+from src.smoothing import MovingAverage
+from src.scaler import scale_value
+import os
+from datetime import datetime
+from pathlib import Path
+
+os.environ["QT_QPA_PLATFORM"] = "xcb"
+
+def run_pipeline():
+
+    cam = Camera()
+    detector = FaceMeshDetector()
+    logger = LandmarkLogger()
+
+    baseline_manager = BaselineManager()
+    baseline_finalized = False
+
+    au12_smoother = MovingAverage(window_size=5)
+    expressivity_smoother = MovingAverage(window_size=5)
+    expressivity_engine = Expressivity()
+    head_engine = HeadYawVelocity()
+    head_smoother = MovingAverage(window_size=5)
+    
+    fps = cam.get_fps()
+    blink_engine = BlinkDetector(fps)
+    eye_engine = EyeContact(fps)
+
+    au12_raw_list = []
+    au12_smooth_list = []
+    au12_scaled_list = []
+    
+    expressivity_raw_list = []
+    expressivity_smooth_list = []
+    expressivity_scaled_list = []
+    
+    head_raw_list = []
+    head_smooth_list = []
+    head_scaled_list = []
+    
+    blink_raw_list = []
+    blink_scaled_list = []
+    ear_list = []
+    
+    eye_raw_list = []
+    eye_scaled_list = []
+
+    frame_index = 0
+    session_start = time.time()
+
+    baseline_end_time = session_start + BaselineConfig.DURATION_SECONDS
+
+    print("Session started.")
+    print(f"Baseline window: {BaselineConfig.DURATION_SECONDS} seconds")
+
+    while True:
+        ret, frame = cam.read()
+        if not ret:
+            break
+
+        current_time = time.time()
+        timestamp_ms = int(current_time * 1000)
+
+        landmarks = detector.process(frame)
+
+        if landmarks:
+            subset = extract_subset(landmarks)
+
+            # Raw feature computation
+            au12_raw = compute_au12(subset)
+            au12_smoothed = au12_smoother.update(au12_raw)
+            
+            expressivity_raw = expressivity_engine.compute(subset)
+            expressivity_smoothed = expressivity_smoother.update(expressivity_raw)
+            
+            head_raw = head_engine.compute_velocity(subset)
+            head_smoothed = head_smoother.update(head_raw)
+            
+            yaw_value = head_engine.get_current_yaw()
+            contact, contact_ratio = eye_engine.update(yaw_value)
+            
+            ear, blink_event, blink_rate = blink_engine.update(subset)
+
+            feature_dict = {
+                "au12": au12_smoothed,
+                "expressivity": expressivity_smoothed,
+                "head_velocity": head_smoothed,
+                "blink_rate": blink_rate,
+                "eye_contact": contact_ratio
+            }
+
+            # Baseline collection or deviation phase
+            if not baseline_manager.locked:
+                baseline_manager.collect_features(feature_dict)
+                baseline_manager.collect_landmarks(subset)
+
+                if current_time > baseline_end_time:
+                    baseline_manager.finalize()
+
+                au12_scaled = 0.5  # neutral during baseline
+                expressivity_scaled = 0.5  # neutral during baseline
+                head_scaled = 0.5  # neutral during baseline
+                blink_scaled = 0.5  # neutral during baseline
+                eye_scaled = 0.5  # neutral during baseline
+            else:
+                # Deviation computation
+                stats_au12 = baseline_manager.get_feature_stats("au12")
+                mu_au12 = stats_au12["mu"]
+                sigma_au12 = stats_au12["sigma"]
+                au12_scaled = scale_value(au12_smoothed, mu_au12, sigma_au12)
+                
+                stats_expr = baseline_manager.get_feature_stats("expressivity")
+                mu_expr = stats_expr["mu"]
+                sigma_expr = stats_expr["sigma"]
+                expressivity_scaled = scale_value(expressivity_smoothed, mu_expr, sigma_expr)
+                
+                stats_head = baseline_manager.get_feature_stats("head_velocity")
+                mu_head = stats_head["mu"]
+                sigma_head = stats_head["sigma"]
+                head_scaled = scale_value(head_smoothed, mu_head, sigma_head)
+                
+                stats_blink = baseline_manager.get_feature_stats("blink_rate")
+                mu_blink = stats_blink["mu"]
+                sigma_blink = stats_blink["sigma"]
+                blink_scaled = scale_value(blink_rate, mu_blink, sigma_blink)
+                
+                stats_eye = baseline_manager.get_feature_stats("eye_contact")
+                mu_eye = stats_eye["mu"]
+                sigma_eye = stats_eye["sigma"]
+                eye_scaled = scale_value(contact_ratio, mu_eye, sigma_eye)
+
+            logger.log(frame_index, timestamp_ms, subset)
+
+            if DebugConfig.SHOW_LANDMARKS:
+                detector.draw(frame, landmarks)
+
+            # Optional overlay
+            phase = "BASELINE" if not baseline_manager.locked else "DEVIATION"
+            cv2.putText(
+                frame,
+                phase,
+                (20, 40),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 255, 0) if phase == "BASELINE" else (0, 0, 255),
+                2
+            )
+
+            # Display scaled AU12 value
+            cv2.putText(
+                frame,
+                f"AU12: {au12_scaled:.3f}",
+                (20, 80),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255, 255, 0),
+                2
+            )
+            
+            # Display scaled Expressivity value
+            cv2.putText(
+                frame,
+                f"Expressivity: {expressivity_scaled:.3f}",
+                (20, 120),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (0, 255, 255),
+                2
+            )
+            
+            # Display scaled Head Velocity value
+            cv2.putText(
+                frame,
+                f"Head Velocity: {head_scaled:.3f}",
+                (20, 160),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255, 0, 255),
+                2
+            )
+            
+            # Display scaled Blink Rate value
+            cv2.putText(
+                frame,
+                f"Blink Rate: {blink_scaled:.3f}",
+                (20, 200),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (200, 100, 200),
+                2
+            )
+            
+            # Display scaled Eye Contact value
+            cv2.putText(
+                frame,
+                f"Eye Contact: {eye_scaled:.3f}",
+                (20, 240),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (100, 200, 255),
+                2
+            )
+
+            au12_raw_list.append(au12_raw)
+            au12_smooth_list.append(au12_smoothed)
+            au12_scaled_list.append(au12_scaled)
+            
+            expressivity_raw_list.append(expressivity_raw)
+            expressivity_smooth_list.append(expressivity_smoothed)
+            expressivity_scaled_list.append(expressivity_scaled)
+            
+            head_raw_list.append(head_raw)
+            head_smooth_list.append(head_smoothed)
+            head_scaled_list.append(head_scaled)
+            
+            blink_raw_list.append(blink_rate)
+            blink_scaled_list.append(blink_scaled)
+            ear_list.append(ear)
+            
+            eye_raw_list.append(contact_ratio)
+            eye_scaled_list.append(eye_scaled)
+
+        cv2.imshow("Facial Analysis", frame)
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            break
+
+        frame_index += 1
+
+    print("Session ended.")
+    logger.close()
+    print("Detected FPS:", cam.get_fps())
+    cam.release()
+    cv2.destroyAllWindows()
+
+    import matplotlib.pyplot as plt
+
+    # Create plots directory if it doesn't exist
+    plots_dir = Path("plots")
+    plots_dir.mkdir(exist_ok=True)
+
+    # Generate timestamped filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Plot AU12
+    au12_plot_file = plots_dir / f"au12_signal_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(au12_raw_list, label="Raw")
+    plt.plot(au12_smooth_list, label="Smoothed")
+    plt.plot(au12_scaled_list, label="Scaled")
+    plt.legend()
+    plt.title("AU12 Signal")
+    plt.savefig(au12_plot_file, dpi=100, bbox_inches="tight")
+    print(f"AU12 plot saved: {au12_plot_file}")
+    plt.show()
+    
+    # Plot Expressivity
+    expr_plot_file = plots_dir / f"expressivity_signal_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(expressivity_raw_list, label="Raw")
+    plt.plot(expressivity_smooth_list, label="Smoothed")
+    plt.plot(expressivity_scaled_list, label="Scaled")
+    plt.legend()
+    plt.title("Expressivity Signal")
+    plt.savefig(expr_plot_file, dpi=100, bbox_inches="tight")
+    print(f"Expressivity plot saved: {expr_plot_file}")
+    plt.show()
+    
+    # Plot Head Velocity
+    head_plot_file = plots_dir / f"head_velocity_signal_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(head_raw_list, label="Raw")
+    plt.plot(head_smooth_list, label="Smoothed")
+    plt.plot(head_scaled_list, label="Scaled")
+    plt.legend()
+    plt.title("Head Velocity Signal")
+    plt.savefig(head_plot_file, dpi=100, bbox_inches="tight")
+    print(f"Head Velocity plot saved: {head_plot_file}")
+    plt.show()
+    
+    # Plot Blink Rate
+    blink_plot_file = plots_dir / f"blink_rate_signal_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(blink_raw_list, label="Raw (BPM)")
+    plt.plot(blink_scaled_list, label="Scaled")
+    plt.legend()
+    plt.title("Blink Rate Signal")
+    plt.savefig(blink_plot_file, dpi=100, bbox_inches="tight")
+    print(f"Blink Rate plot saved: {blink_plot_file}")
+    plt.show()
+    
+    # Plot EAR (Eye Aspect Ratio)
+    ear_plot_file = plots_dir / f"ear_signal_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(ear_list, label="EAR")
+    plt.title("EAR (Eye Aspect Ratio) Signal")
+    plt.legend()
+    plt.savefig(ear_plot_file, dpi=100, bbox_inches="tight")
+    print(f"EAR plot saved: {ear_plot_file}")
+    plt.show()
+    
+    # Plot Blink Rate Raw vs Scaled
+    blink_comparison_file = plots_dir / f"blink_comparison_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(blink_raw_list, label="Blink Rate Raw")
+    plt.plot(blink_scaled_list, label="Blink Rate Scaled")
+    plt.legend()
+    plt.title("Blink Rate Comparison")
+    plt.savefig(blink_comparison_file, dpi=100, bbox_inches="tight")
+    print(f"Blink comparison plot saved: {blink_comparison_file}")
+    plt.show()
+    
+    # Plot Eye Contact
+    eye_plot_file = plots_dir / f"eye_contact_signal_{timestamp}.png"
+    plt.figure(figsize=(12, 5))
+    plt.plot(eye_raw_list, label="Raw (Contact Ratio)")
+    plt.plot(eye_scaled_list, label="Scaled")
+    plt.legend()
+    plt.title("Eye Contact Signal")
+    plt.savefig(eye_plot_file, dpi=100, bbox_inches="tight")
+    print(f"Eye Contact plot saved: {eye_plot_file}")
+    plt.show()
+
+================================================================================
+FILE: src/plot_utils.py
+================================================================================
+
+"""
+plot_utils.py
+
+Plot raw vs smoothed vs scaled signals.
+"""
+
+import matplotlib.pyplot as plt
+
+
+def plot_signal(raw, smoothed, scaled, name):
+
+    plt.figure(figsize=(10,5))
+
+    plt.plot(raw, label="Raw")
+    plt.plot(smoothed, label="Smoothed")
+    plt.plot(scaled, label="Scaled")
+
+    plt.title(name)
+    plt.legend()
+    plt.show()
+
+================================================================================
+FILE: src/scaler.py
+================================================================================
+
+# Scaler module
+"""
+scaler.py
+
+Purpose:
+Apply deviation modeling:
+Z-score + sigmoid bounding
+
+Output:
+Scaled value in [0,1]
+"""
+
+import numpy as np
+
+
+def z_score(value, mu, sigma):
+    return (value - mu) / sigma
+
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+def scale_value(value, mu, sigma):
+    z = z_score(value, mu, sigma)
+    return sigmoid(z)
+
+================================================================================
+FILE: src/smoothing.py
+================================================================================
+
+# Smoothing module
+"""
+smoothing.py
+
+Purpose:
+Provide moving average smoothing for frame-wise signals.
+
+Responsibilities:
+- Maintain rolling window
+- Return smoothed value
+
+Does NOT:
+- Know about baseline
+- Know about scaling
+"""
+
+from collections import deque
+import numpy as np
+
+
+class MovingAverage:
+    def __init__(self, window_size=5):
+        self.window = deque(maxlen=window_size)
+
+    def update(self, value):
+        self.window.append(value)
+        return np.mean(self.window)
+
+================================================================================
+SUMMARY: 19 Python files extracted
+================================================================================

@@ -30,3 +30,6 @@ class HeadYawVelocity:
         self.prev_yaw = yaw
 
         return velocity
+
+    def get_current_yaw(self):
+        return self.prev_yaw if self.prev_yaw is not None else 0
