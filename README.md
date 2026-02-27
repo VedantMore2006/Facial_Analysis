@@ -63,34 +63,32 @@ Traditional systems log every frame. This system:
 
 ## 📁 Project Structure
 
-```
-Facial_analysis/
-├── main.py                      # Entry point - runs full pipeline
-├── config.py                    # All tunable parameters (FPS, baseline duration, etc.)
-├── app.py                       # Streamlit dashboard for interactive visualization
-├── data/
-│   └── features_*.csv          # Privacy-safe feature logs (timestamped)
-├── src/
-│   ├── pipeline.py             # Main processing orchestrator
-│   ├── camera.py               # Webcam capture & FPS management
-│   ├── face_mesh.py            # MediaPipe landmark detection
-│   ├── landmark_processor.py   # Extract subset of key landmarks
-│   ├── baseline.py             # Personal baseline collection & normalization
-│   ├── scaler.py               # Z-score scaling with sigma floor
-│   ├── smoothing.py            # Moving average temporal filter
-│   ├── feature_vector.py       # Clip, round, and construct final vector
-│   ├── feature_logger.py       # Privacy-safe CSV writer
-│   ├── logger.py               # (Optional) Raw landmark logger for debug
-│   └── feature_engine/
-│       ├── au12.py             # Smile intensity (lip corner distance)
-│       ├── expressivity.py     # Total facial movement magnitude
-│       ├── head_velocity.py    # Yaw angle velocity computation
-│       ├── head_pose.py        # Head orientation estimation
-│       ├── eye_contact.py      # Gaze engagement ratio
-│       ├── blink.py            # Blink detection & rate calculation
-│       └── response_latency.py # Event-based latency tracker
-└── docs/                        # (Optional) Documentation
-```
+- Facial_analysis/
+- [main.py](main.py) — Entry point (runs full pipeline)
+- [config.py](config.py) — Tunable parameters (FPS, baseline duration, etc.)
+- [app.py](app.py) — Streamlit dashboard for interactive visualization
+- [Project_extract.py](Project_extract.py) — Project extraction utility
+- [data/](data/) — Privacy-safe feature logs
+- [src/](src/) — Core runtime modules
+- [src/pipeline.py](src/pipeline.py) — Main processing orchestrator
+- [src/camera.py](src/camera.py) — Webcam capture & FPS management
+- [src/face_mesh.py](src/face_mesh.py) — MediaPipe landmark detection
+- [src/landmark_processor.py](src/landmark_processor.py) — Extract subset of key landmarks
+- [src/baseline.py](src/baseline.py) — Personal baseline collection & normalization
+- [src/scaler.py](src/scaler.py) — Z-score scaling with sigma floor
+- [src/smoothing.py](src/smoothing.py) — Moving average temporal filter
+- [src/feature_vector.py](src/feature_vector.py) — Clip, round, and construct final vector
+- [src/feature_logger.py](src/feature_logger.py) — Privacy-safe CSV writer
+- [src/logger.py](src/logger.py) — Optional raw landmark logger (debug)
+- [src/feature_engine/](src/feature_engine/) — Feature computation engines
+- [src/feature_engine/au12.py](src/feature_engine/au12.py) — Smile intensity (lip corner distance)
+- [src/feature_engine/expressivity.py](src/feature_engine/expressivity.py) — Total facial movement magnitude
+- [src/feature_engine/head_velocity.py](src/feature_engine/head_velocity.py) — Yaw angle velocity computation
+- [src/feature_engine/head_pose.py](src/feature_engine/head_pose.py) — Head orientation estimation
+- [src/feature_engine/eye_contact.py](src/feature_engine/eye_contact.py) — Gaze engagement ratio
+- [src/feature_engine/blink.py](src/feature_engine/blink.py) — Blink detection & rate calculation
+- [src/feature_engine/response_latency.py](src/feature_engine/response_latency.py) — Event-based latency tracker
+- [docs/](docs/) — Optional documentation
 
 ---
 
@@ -383,8 +381,8 @@ Contributions are welcome! Focus areas:
 ---
 
 ## 📧 Contact
-
-For questions, issues, or collaboration inquiries, please open a GitHub issue or contact the project maintainer.
+- Email: [vedantmoremain@gamil.com](mailto:vedantmoremain@gmail.com)
+- For questions, issues, or collaboration inquiries, please open a GitHub issue or contact the project maintainer.
 
 ---
 
