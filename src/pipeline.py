@@ -35,8 +35,6 @@ from datetime import datetime
 from pathlib import Path
 from src.feature_engine.response_latency import ResponseLatency
 from src.feature_vector import build_feature_vector
-from src.visualization import plot_signal, plot_heatmap, print_summary_statistics
-from src.dashboard import create_dashboard
 import numpy as np
 os.environ["QT_QPA_PLATFORM"] = "xcb"
 
@@ -312,118 +310,9 @@ def run_pipeline():
     print("Session ended.")
     logger.close()
     feature_logger.close()
-    print(f"Features saved to: {feature_logger.filepath}")
-    print("Detected FPS:", cam.get_fps())
+    print(f"\n✅ Features saved to: {feature_logger.filepath}")
+    print(f"   Detected FPS: {cam.get_fps()}")
+    print("\n📊 Visualize results in Streamlit:")
+    print("   streamlit run app.py")
     cam.release()
     cv2.destroyAllWindows()
-
-    import matplotlib.pyplot as plt
-
-    # Create plots directory if it doesn't exist
-    plots_dir = Path("plots")
-    plots_dir.mkdir(exist_ok=True)
-
-    # Generate timestamped filename
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    # Use new visualization functions with baseline marking
-    print("\nGenerating signal visualizations...")
-    
-    # Plot AU12
-    au12_plot_file = plots_dir / f"au12_signal_{timestamp}.png"
-    plot_signal(au12_raw_list, au12_smooth_list, au12_scaled_list, "AU12 Signal", baseline_frames=baseline_frames)
-    plt.savefig(au12_plot_file, dpi=100, bbox_inches="tight")
-    print(f"AU12 plot saved: {au12_plot_file}")
-    
-    # Plot Expressivity
-    expr_plot_file = plots_dir / f"expressivity_signal_{timestamp}.png"
-    plot_signal(expressivity_raw_list, expressivity_smooth_list, expressivity_scaled_list, "Expressivity Signal", baseline_frames=baseline_frames)
-    plt.savefig(expr_plot_file, dpi=100, bbox_inches="tight")
-    print(f"Expressivity plot saved: {expr_plot_file}")
-    
-    # Plot Head Velocity
-    head_plot_file = plots_dir / f"head_velocity_signal_{timestamp}.png"
-    plot_signal(head_raw_list, head_smooth_list, head_scaled_list, "Head Velocity Signal", baseline_frames=baseline_frames)
-    plt.savefig(head_plot_file, dpi=100, bbox_inches="tight")
-    print(f"Head Velocity plot saved: {head_plot_file}")
-    
-    # Plot Blink Rate
-    blink_plot_file = plots_dir / f"blink_rate_signal_{timestamp}.png"
-    plot_signal(blink_raw_list, blink_raw_list, blink_scaled_list, "Blink Rate Signal", baseline_frames=baseline_frames)
-    plt.savefig(blink_plot_file, dpi=100, bbox_inches="tight")
-    print(f"Blink Rate plot saved: {blink_plot_file}")
-    
-    # Plot EAR (Eye Aspect Ratio)
-    ear_plot_file = plots_dir / f"ear_signal_{timestamp}.png"
-    plt.figure(figsize=(12, 5))
-    plt.plot(ear_list, label="EAR")
-    if baseline_frames is not None:
-        plt.axvspan(0, baseline_frames, alpha=0.2, color='gray', label="Baseline")
-    plt.title("EAR (Eye Aspect Ratio) Signal")
-    plt.xlabel("Frame")
-    plt.ylabel("Value")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(ear_plot_file, dpi=100, bbox_inches="tight")
-    print(f"EAR plot saved: {ear_plot_file}")
-    plt.show()
-    
-    # Plot Eye Contact
-    eye_plot_file = plots_dir / f"eye_contact_signal_{timestamp}.png"
-    plot_signal(eye_raw_list, eye_raw_list, eye_scaled_list, "Eye Contact Signal", baseline_frames=baseline_frames)
-    plt.savefig(eye_plot_file, dpi=100, bbox_inches="tight")
-    print(f"Eye Contact plot saved: {eye_plot_file}")
-    
-    # Generate behavioral heatmap
-    print("\nGenerating behavioral deviation heatmap...")
-    feature_matrix = np.array([
-        au12_scaled_list,
-        expressivity_scaled_list,
-        head_scaled_list,
-        eye_scaled_list,
-        blink_scaled_list,
-        latency_per_frame_list
-    ])
-    
-    feature_names = [
-        "AU12",
-        "Expressivity",
-        "Head Velocity",
-        "Eye Contact",
-        "Blink Rate",
-        "Response Latency"
-    ]
-    
-    heatmap_file = plots_dir / f"behavioral_heatmap_{timestamp}.png"
-    plot_heatmap(feature_matrix, feature_names, baseline_frames=baseline_frames)
-    plt.savefig(heatmap_file, dpi=100, bbox_inches="tight")
-    print(f"Heatmap saved: {heatmap_file}")
-    
-    # Generate summary statistics
-    print("\nGenerating summary statistics...")
-    print_summary_statistics(feature_names, [
-        au12_scaled_list,
-        expressivity_scaled_list,
-        head_scaled_list,
-        eye_scaled_list,
-        blink_scaled_list,
-        latency_per_frame_list
-    ])
-    
-    # Generate comprehensive dashboard
-    print("\nGenerating behavioral dashboard...")
-    feature_dict_lists = {
-        "AU12": au12_scaled_list,
-        "Expressivity": expressivity_scaled_list,
-        "Head Velocity": head_scaled_list,
-        "Eye Contact": eye_scaled_list,
-        "Blink Rate": blink_scaled_list,
-        "Response Latency": latency_per_frame_list
-    }
-    
-    dashboard_names = list(feature_dict_lists.keys())
-    
-    dashboard_file = plots_dir / f"behavioral_dashboard_{timestamp}.png"
-    dashboard_fig = create_dashboard(feature_dict_lists, dashboard_names, baseline_frames)
-    dashboard_fig.savefig(dashboard_file, dpi=100, bbox_inches="tight")
-    print(f"Dashboard saved: {dashboard_file}")
