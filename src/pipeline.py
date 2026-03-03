@@ -55,11 +55,10 @@ Does NOT:
 
 import time
 import cv2
-from src.camera import Camera
 from src.face_mesh import FaceMeshDetector
 from src.landmark_processor import extract_subset
 from src.logger import LandmarkLogger
-from src.feature_logger import FeatureLogger
+from src.feature_logger import FeatureLogger, ValidationRawLogger
 from config import BaselineConfig, DebugConfig
 from src.feature_engine.au12 import compute_au12
 from src.feature_engine.expressivity import Expressivity
@@ -79,9 +78,12 @@ import numpy as np
 # Force X11 backend for OpenCV on Linux (prevents Wayland issues)
 os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-def run_pipeline():
+def run_pipeline(frame_source):
     """
     Main pipeline execution function.
+    
+    Args:
+        frame_source: FrameSource instance (CameraSource or VideoFileSource)
     
     Runs the complete facial analysis workflow:
     - Initializes all components
@@ -95,10 +97,11 @@ def run_pipeline():
     # ========================================================================
     
     # Core components
-    cam = Camera()                          # Webcam interface
+    # frame_source injected from main.py (either CameraSource or VideoFileSource)
     detector = FaceMeshDetector()           # MediaPipe face landmark detector
     logger = LandmarkLogger()               # Raw landmark logger (debug)
     feature_logger = FeatureLogger()        # Privacy-safe feature logger
+    validation_raw_logger = ValidationRawLogger()  # Validation raw values logger
 
     # Baseline management
     baseline_manager = BaselineManager()    # Collects and computes baseline stats
@@ -114,10 +117,13 @@ def run_pipeline():
     head_engine = HeadYawVelocity()         # Head rotation speed
     
     # Time-dependent engines (need FPS for rate calculations)
-    fps = cam.get_fps()
+    fps = frame_source.get_fps()
     blink_engine = BlinkDetector(fps)       # Blink frequency detection
     eye_engine = EyeContact(fps)            # Eye gaze alignment
     latency_engine = ResponseLatency(fps)   # Response time measurement
+    
+    # Determine timestamp mode based on source type
+    is_realtime = frame_source.is_realtime()
     
     # Baseline collection for response latency
     mouth_baseline_values = []              # Stores mouth opening values during baseline
@@ -143,6 +149,8 @@ def run_pipeline():
     eye_raw_list = []
     eye_scaled_list = []
     
+    yaw_raw_list = []                       # Raw head yaw angle values
+    
     latency_per_frame_list = []             # Track latency per frame for heatmap
 
     # Frame counting and timing
@@ -160,14 +168,22 @@ def run_pipeline():
     # MAIN PROCESSING LOOP: Run until user quits
     # ========================================================================
     while True:
-        # Capture frame from camera
-        ret, frame = cam.read()
+        # Capture frame from source (camera or video file)
+        ret, frame = frame_source.read()
         if not ret:
-            break  # Camera disconnected or error
+            break  # Source exhausted (camera disconnected or video ended)
 
         # Get current timestamp
         current_time = time.time()
-        timestamp_ms = int(current_time * 1000)
+        
+        # Calculate timestamp based on source type
+        if is_realtime:
+            # Realtime source: use actual elapsed time
+            elapsed_time = current_time - session_start
+            timestamp_ms = int(elapsed_time * 1000)
+        else:
+            # Recorded source: use deterministic frame-based time
+            timestamp_ms = int(frame_index * (1000 / fps))
 
         # ====================================================================
         # FACE DETECTION: Extract landmarks from current frame
@@ -407,6 +423,24 @@ def run_pipeline():
             
             eye_raw_list.append(contact_ratio)
             eye_scaled_list.append(eye_scaled)
+            
+            # Get current head yaw angle for validation logging
+            yaw_raw = head_engine.get_current_yaw()
+            yaw_raw_list.append(yaw_raw)
+            
+            # ================================================================
+            # VALIDATION LOGGING: Log raw unprocessed values
+            # ================================================================
+            validation_raw_logger.log(
+                frame_index=frame_index,
+                timestamp_ms=timestamp_ms,
+                au12_raw=au12_raw,
+                expressivity_raw=expressivity_raw,
+                head_velocity_raw=head_raw,
+                blink_rate_raw=blink_rate,
+                ear_raw=ear,
+                yaw_raw=yaw_raw
+            )
 
         # ====================================================================
         # DISPLAY: Show video feed with overlays
@@ -434,13 +468,16 @@ def run_pipeline():
     # Close all file handles
     logger.close()
     feature_logger.close()
+    validation_raw_logger.close()
     
     # Print results summary
     print(f"\n✅ Features saved to: {feature_logger.filepath}")
-    print(f"   Detected FPS: {cam.get_fps()}")
+    print(f"✅ Validation raw values saved to: {validation_raw_logger.filepath}")
+    print(f"   Source FPS: {frame_source.get_fps()}")
+    print(f"   Total frames processed: {frame_index}")
     print("\n📊 Visualize results in Streamlit:")
     print("   streamlit run app.py")
     
-    # Release camera and close windows
-    cam.release()
+    # Release frame source and close windows
+    frame_source.release()
     cv2.destroyAllWindows()

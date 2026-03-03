@@ -57,28 +57,44 @@ Traditional systems log every frame. This system:
 - **Temporal smoothing** — 5-frame moving average reduces noise
 - **Per-frame feature computation** — raw → smoothed → scaled
 - **Bounds validation** — assertion ensures all features in [0, 1]
-- **CSV logging** — only scaled features stored (privacy-safe)
+- **Dual CSV logging** — production features + validation raw values
+
+---
+
+### **6. Flexible Frame Source Architecture**
+- **Abstraction layer** — Pipeline is source-agnostic via `FrameSource` interface
+- **Live webcam support** — `CameraSource` for real-time analysis
+- **Video file support** — `VideoFileSource` for offline processing
+- **Deterministic timestamps** — Frame-based timing for reproducible video analysis
+- **Easy extensibility** — Add RTSP streams, image sequences, or network cameras
+
+**Use Cases:**
+- Live monitoring during interviews or therapy sessions
+- Batch processing of archived video recordings
+- Validation and testing with controlled video inputs
+- Research with reproducible timestamps
 
 ---
 
 ## 📁 Project Structure
 
 - Facial_analysis/
-- [main.py](main.py) — Entry point (runs full pipeline)
+- [main.py](main.py) — Entry point with argparse (webcam/video selection)
 - [config.py](config.py) — Tunable parameters (FPS, baseline duration, etc.)
 - [app.py](app.py) — Streamlit dashboard for interactive visualization
 - [Project_extract.py](Project_extract.py) — Project extraction utility
 - [data/](data/) — Privacy-safe feature logs
 - [src/](src/) — Core runtime modules
 - [src/pipeline.py](src/pipeline.py) — Main processing orchestrator
-- [src/camera.py](src/camera.py) — Webcam capture & FPS management
+- [src/frame_source.py](src/frame_source.py) — **NEW:** Frame source abstraction (CameraSource/VideoFileSource)
+- [src/camera.py](src/camera.py) — Legacy webcam capture (now wrapped by frame_source)
 - [src/face_mesh.py](src/face_mesh.py) — MediaPipe landmark detection
 - [src/landmark_processor.py](src/landmark_processor.py) — Extract subset of key landmarks
 - [src/baseline.py](src/baseline.py) — Personal baseline collection & normalization
 - [src/scaler.py](src/scaler.py) — Z-score scaling with sigma floor
 - [src/smoothing.py](src/smoothing.py) — Moving average temporal filter
 - [src/feature_vector.py](src/feature_vector.py) — Clip, round, and construct final vector
-- [src/feature_logger.py](src/feature_logger.py) — Privacy-safe CSV writer
+- [src/feature_logger.py](src/feature_logger.py) — Dual CSV writer (production + validation)
 - [src/logger.py](src/logger.py) — Optional raw landmark logger (debug)
 - [src/feature_engine/](src/feature_engine/) — Feature computation engines
 - [src/feature_engine/au12.py](src/feature_engine/au12.py) — Smile intensity (lip corner distance)
@@ -88,7 +104,7 @@ Traditional systems log every frame. This system:
 - [src/feature_engine/eye_contact.py](src/feature_engine/eye_contact.py) — Gaze engagement ratio
 - [src/feature_engine/blink.py](src/feature_engine/blink.py) — Blink detection & rate calculation
 - [src/feature_engine/response_latency.py](src/feature_engine/response_latency.py) — Event-based latency tracker
-- [docs/](docs/) — Optional documentation
+- [docs/](docs/) — Documentation (includes video processing guide)
 
 ---
 
@@ -97,7 +113,9 @@ Traditional systems log every frame. This system:
 ### **Data Flow:**
 
 ```
-Webcam Frame (640×480)
+Frame Source (Webcam OR Video File)
+    ↓
+Frame Acquisition (CameraSource / VideoFileSource)
     ↓
 MediaPipe Face Mesh (468 landmarks)
     ↓
@@ -117,7 +135,9 @@ Feature Vector Construction [6 values, clipped to [0,1]]
     ↓
 Bounds Assertion (ensures valid range)
     ↓
-Privacy-Safe CSV Logger (data/features_*.csv)
+Dual CSV Logging:
+  • Privacy-Safe Features (data/features_*.csv)
+  • Validation Raw Values (data/validation_raw_session_*.csv)
     ↓
 Streamlit Dashboard Visualization (app.py)
 ```
@@ -132,8 +152,26 @@ pip install opencv-python mediapipe numpy streamlit plotly pandas
 ```
 
 ### **1. Run Real-Time Analysis:**
+
+#### **Live Webcam Mode (Default):**
 ```bash
 python main.py
+```
+
+#### **Offline Video File Mode:**
+```bash
+python main.py --video path/to/video.mp4
+```
+
+**Examples:**
+```bash
+# Process a recorded interview
+python main.py --video recordings/interview_session.mp4
+
+# Batch process multiple videos
+for video in recordings/*.mp4; do
+    python main.py --video "$video"
+done
 ```
 
 **Controls:**
@@ -141,7 +179,8 @@ python main.py
 - Press **"s"** to trigger stimulus (for response latency)
 
 **Output:**
-- Features saved to: `data/features_{timestamp}.csv`
+- Production features: `data/features_{timestamp}.csv`
+- Validation raw values: `data/validation_raw_session_{timestamp}.csv`
 - Real-time video feed with landmarks & phase indicator
 
 ---
@@ -247,7 +286,7 @@ streamlit run app.py
 
 ## 📊 Output Format
 
-### **features_{timestamp}.csv**
+### **Production Features: features_{timestamp}.csv**
 
 | Column | Description | Range |
 |--------|-------------|-------|
@@ -262,6 +301,23 @@ streamlit run app.py
 - **0.5** = Baseline (neutral state)
 - **>0.5** = Elevated relative to baseline
 - **<0.5** = Suppressed relative to baseline
+
+---
+
+### **Validation Raw Values: validation_raw_session_{timestamp}.csv**
+
+| Column | Description | Notes |
+|--------|-------------|-------|
+| `frame_index` | Frame number in session | Sequential counter |
+| `timestamp_ms` | Milliseconds since session start | Deterministic for video files |
+| `au12_raw` | Raw smile intensity | **NO smoothing, NO scaling, NO baseline** |
+| `expressivity_raw` | Raw facial movement | **NO smoothing, NO scaling, NO baseline** |
+| `head_velocity_raw` | Raw head rotation speed | **NO smoothing, NO scaling, NO baseline** |
+| `blink_rate_raw` | Raw blink frequency | **NO smoothing, NO scaling, NO baseline** |
+| `ear_raw` | Raw Eye Aspect Ratio | **NO smoothing, NO scaling, NO baseline** |
+| `yaw_raw` | Raw head yaw angle | **NO smoothing, NO scaling, NO baseline** |
+
+**Purpose:** Validation artifact for verifying feature computation correctness
 
 ---
 
@@ -345,6 +401,12 @@ Baseline normalization reduces cross-individual bias, but always validate on div
 4. Update feature vector in `src/feature_vector.py`
 5. Update Streamlit dashboard columns
 
+### **Add New Frame Sources:**
+1. Create new class inheriting from `FrameSource` in `src/frame_source.py`
+2. Implement required methods: `read()`, `release()`, `get_fps()`, `is_realtime()`
+3. Add argparse option in `main.py`
+4. Example: RTSP streams, image sequences, network cameras
+
 ### **Custom Baselines:**
 - Modify `src/baseline.py` to persist baselines across sessions
 - Store baseline stats in database for longitudinal studies
@@ -355,12 +417,17 @@ Baseline normalization reduces cross-individual bias, but always validate on div
 
 ---
 
-## 📚 References
+## 📚 References & Documentation
 
+### **Technical References:**
 - **MediaPipe Face Mesh:** [Google MediaPipe](https://mediapipe.dev/)
 - **Action Units (FACS):** Ekman & Friesen facial coding system
 - **Eye Aspect Ratio:** Soukupová & Čech (2016)
 - **Privacy-Preserving CV:** Behavioral abstraction techniques
+
+### **Project Documentation:**
+- **[Video Processing Guide](docs/VIDEO_PROCESSING_GUIDE.md)** — How to use video files instead of webcam
+- **[Frame Source Refactoring](docs/FRAME_SOURCE_REFACTORING.md)** — Technical details of abstraction layer
 
 ---
 
