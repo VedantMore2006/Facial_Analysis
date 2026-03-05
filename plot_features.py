@@ -28,6 +28,7 @@ import sys
 import glob
 import os
 from datetime import datetime
+import argparse
 
 # ============================================================================
 # CONFIGURATION
@@ -85,10 +86,68 @@ OUTPUT_DIR = Path('plots')
 
 
 # ============================================================================
+# CLI ARGUMENT PARSING
+# ============================================================================
+
+def parse_arguments():
+    """
+    Parse command-line arguments.
+    
+    Returns:
+        Namespace with parsed arguments
+    """
+    parser = argparse.ArgumentParser(
+        description="Facial Analysis Feature Visualization Tool",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Auto-detect latest CSV, save to 'plots/' (default)
+  python plot_features.py
+  
+  # Specify CSV file
+  python plot_features.py --csv data/features_1772545814.csv
+  
+  # Custom output directory name
+  python plot_features.py -c data/features_1772545814.csv -o my_analysis
+  
+  # Verbose mode for detailed output
+  python plot_features.py --csv data/features_1772545814.csv --verbose
+  
+  # Combined options
+  python plot_features.py -c data/features_1772545814.csv -o results -v
+        """
+    )
+    
+    parser.add_argument(
+        '--csv', '-c',
+        type=str,
+        default=None,
+        metavar='PATH',
+        help='Path to features CSV file (default: auto-finds latest in data/)'
+    )
+    
+    parser.add_argument(
+        '--output', '-o',
+        type=str,
+        default='plots',
+        metavar='NAME',
+        help='Output directory name for plots (default: plots)'
+    )
+    
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Show detailed processing information'
+    )
+    
+    return parser.parse_args()
+
+
+# ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
 
-def find_latest_csv(data_dir='data'):
+def find_latest_csv(data_dir='data', verbose=False):
     """Find the most recent features CSV file."""
     pattern = f"{data_dir}/features_*.csv"
     files = glob.glob(pattern)
@@ -98,14 +157,29 @@ def find_latest_csv(data_dir='data'):
     
     # Sort by modification time, get latest
     latest = max(files, key=os.path.getmtime)
+    
+    if verbose:
+        print(f"  → Found {len(files)} CSV file(s) in {data_dir}/")
+        print(f"  → Selected latest: {latest}")
+    
     return latest
 
 
-def load_feature_data(csv_path):
+def load_feature_data(csv_path, verbose=False):
     """Load and validate feature CSV data."""
-    print(f"Loading data from: {csv_path}")
+    # Validate file exists
+    if not os.path.isfile(csv_path):
+        raise FileNotFoundError(f"CSV file not found: {csv_path}")
     
-    df = pd.read_csv(csv_path)
+    if verbose:
+        print(f"  → Loading: {csv_path}")
+    else:
+        print(f"Loading data from: {csv_path}")
+    
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception as e:
+        raise ValueError(f"Failed to read CSV file: {e}")
     
     # Validate expected columns
     expected_cols = list(FEATURE_INFO.keys())
@@ -114,7 +188,11 @@ def load_feature_data(csv_path):
     if missing:
         raise ValueError(f"Missing expected columns: {missing}")
     
-    print(f"✓ Loaded {len(df)} frames")
+    if verbose:
+        print(f"  → Loaded {len(df)} frames successfully")
+    else:
+        print(f"✓ Loaded {len(df)} frames")
+    
     print(f"✓ Duration: {len(df) / FPS:.1f} seconds")
     
     return df
@@ -376,19 +454,31 @@ def print_summary_statistics(stats):
 
 def main():
     """Main execution function."""
+    # Parse command-line arguments
+    args = parse_arguments()
+    
     print("\n" + "="*70)
     print("FACIAL ANALYSIS FEATURE VISUALIZATION")
     print("="*70 + "\n")
     
     # Determine CSV file path
-    if len(sys.argv) > 1:
-        csv_path = sys.argv[1]
+    if args.csv:
+        csv_path = args.csv
+        if args.verbose:
+            print("CLI Mode: Using provided CSV path")
     else:
-        print("No CSV file specified, searching for latest...")
-        csv_path = find_latest_csv()
+        if args.verbose:
+            print("CLI Mode: Auto-detecting latest CSV...")
+        else:
+            print("No CSV file specified, searching for latest...")
+        csv_path = find_latest_csv(verbose=args.verbose)
     
     # Load data
-    df = load_feature_data(csv_path)
+    try:
+        df = load_feature_data(csv_path, verbose=args.verbose)
+    except (FileNotFoundError, ValueError) as e:
+        print(f"\n❌ Error: {e}")
+        sys.exit(1)
     
     # Calculate baseline frames
     baseline_frames = int(BASELINE_DURATION_SEC * FPS)
@@ -396,9 +486,19 @@ def main():
     # Compute statistics
     stats = compute_statistics(df)
     
-    # Create output directory
-    OUTPUT_DIR.mkdir(exist_ok=True)
-    print(f"\nOutput directory: {OUTPUT_DIR.absolute()}")
+    # Create output directory with user-specified name
+    output_dir = Path(args.output)
+    output_dir.mkdir(exist_ok=True)
+    
+    if args.verbose:
+        print(f"\n[VERBOSE] Configuration:")
+        print(f"  - Input CSV: {csv_path}")
+        print(f"  - Output directory: {output_dir.absolute()}")
+        print(f"  - Baseline duration: {BASELINE_DURATION_SEC}s ({baseline_frames} frames)")
+        print(f"  - Total frames: {len(df)}")
+        print(f"  - Total duration: {len(df) / FPS:.1f}s")
+    else:
+        print(f"\nOutput directory: {output_dir.absolute()}")
     
     # Generate plots
     print("\nGenerating plots...")
@@ -406,11 +506,11 @@ def main():
     
     print("\n1. Individual feature plots:")
     for feature in FEATURE_INFO.keys():
-        plot_individual_feature(df, feature, baseline_frames, OUTPUT_DIR)
+        plot_individual_feature(df, feature, baseline_frames, output_dir)
     
     print("\n2. Combined visualizations:")
-    plot_combined_heatmap(df, baseline_frames, OUTPUT_DIR)
-    plot_all_features_grid(df, baseline_frames, OUTPUT_DIR)
+    plot_combined_heatmap(df, baseline_frames, output_dir)
+    plot_all_features_grid(df, baseline_frames, output_dir)
     
     # Print statistics
     print_summary_statistics(stats)
@@ -419,7 +519,7 @@ def main():
     print("\n" + "="*70)
     print("✅ VISUALIZATION COMPLETE!")
     print(f"📊 Generated {len(FEATURE_INFO) + 2} plots")
-    print(f"📁 Location: {OUTPUT_DIR.absolute()}")
+    print(f"📁 Location: {output_dir.absolute()}")
     print("="*70 + "\n")
 
 

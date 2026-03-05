@@ -35,6 +35,7 @@ Does NOT:
 import csv
 import os
 import time
+from datetime import datetime
 
 
 class FeatureLogger:
@@ -51,9 +52,11 @@ class FeatureLogger:
         # Create output directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
 
-        # Generate unique filename with timestamp
-        timestamp = int(time.time())
-        self.filepath = f"{output_dir}/features_{timestamp}.csv"
+        # Generate unique filename with human-readable timestamp
+        # Format: features_HH-MM_DD-MM.csv (e.g., features_14-30_04-03.csv)
+        now = datetime.now()
+        timestamp_str = now.strftime("%H-%M_%d-%m")
+        self.filepath = f"{output_dir}/features_{timestamp_str}.csv"
 
         # Open CSV file for writing
         self.file = open(self.filepath, "w", newline="")
@@ -124,9 +127,11 @@ class ValidationRawLogger:
         # Create output directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
 
-        # Generate unique filename with timestamp
-        timestamp = int(time.time())
-        self.filepath = f"{output_dir}/validation_raw_session_{timestamp}.csv"
+        # Generate unique filename with human-readable timestamp
+        # Format: validation_raw_session_HH-MM_DD-MM.csv
+        now = datetime.now()
+        timestamp_str = now.strftime("%H-%M_%d-%m")
+        self.filepath = f"{output_dir}/validation_raw_session_{timestamp_str}.csv"
 
         # Open CSV file for writing
         self.file = open(self.filepath, "w", newline="")
