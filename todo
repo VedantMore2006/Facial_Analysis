@@ -256,7 +256,7 @@ scaled = 1 / (1 + e^(−z))
 
 ## PHASE 13 — CSV Logging
 - [ ] Create `output/csv_logger.py`
-- [ ] Log timestamp + 34 scaled features
+- [ ] Log timestamp + 34 scaled features + raw features values as well and the naming format for the csv must be HH(hour)_MM(month)_DD(date)_MM(month).csv
 - [ ] Example header:
 
 ```text
