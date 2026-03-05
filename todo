@@ -1,0 +1,286 @@
+# MASTER IMPLEMENTATION TODO (Dependency Ordered)
+
+If you follow this sequence, the experimental system should run end-to-end.
+
+## Quick Sequence
+- [ ] 1. Project setup
+- [ ] 2. MediaPipe detection
+- [ ] 3. Landmark subset extraction
+- [ ] 4. Geometry normalization
+- [ ] 5. Head pose stabilization
+- [ ] 6. Frame buffer
+- [ ] 7. Feature engine base class
+- [ ] 8. Implement 34 features
+- [ ] 9. Feature registry
+- [ ] 10. Temporal EMA smoothing
+- [ ] 11. Baseline calculation
+- [ ] 12. Feature normalization
+- [ ] 13. CSV logging
+- [ ] 14. Pipeline runner
+
+---
+
+## PHASE 1 — Project Structure
+- [ ] Create this folder structure:
+
+```text
+experiment_all_features/
+├── core/
+│   ├── pipeline.py
+│   ├── frame_buffer.py
+│   └── feature_registry.py
+├── landmarks/
+│   ├── mediapipe_detector.py
+│   └── landmark_subset.py
+├── processing/
+│   ├── geometry.py
+│   ├── head_pose.py
+│   └── ema_smoothing.py
+├── features/
+│   ├── base_feature.py
+│   ├── facial_au_features.py
+│   ├── eye_features.py
+│   ├── head_motion_features.py
+│   ├── derived_features.py
+│   └── temporal_features.py
+├── utils/
+│   └── math_utils.py
+├── output/
+│   └── csv_logger.py
+└── run_pipeline.py
+```
+
+## PHASE 2 — MediaPipe Detector
+- [ ] Create `landmarks/mediapipe_detector.py`
+- [ ] Initialize MediaPipe FaceMesh
+- [ ] Detect landmarks per frame
+- [ ] Return 478 landmarks
+- [ ] Set `refine_landmarks=True` (required for iris landmarks/gaze features)
+
+## PHASE 3 — Landmark Subset Extraction
+- [ ] Create `landmarks/landmark_subset.py`
+- [ ] Implement `extract_subset(landmarks)`
+- [ ] Output format:
+
+```python
+{
+    index: (x, y, z)
+}
+```
+
+- [ ] Use exactly these 29 landmarks:
+
+```text
+1, 2, 13, 14,
+33, 50,
+61, 63, 70,
+78, 95,
+133, 145,
+152, 159,
+234,
+263, 280,
+291, 296,
+308, 324,
+336,
+362, 374, 386,
+454,
+468, 472
+```
+
+- [ ] Coverage check: eyebrows, eyelids, iris, mouth, jaw, nose
+
+## PHASE 4 — Geometry Normalization (FIX 1)
+- [ ] Create `processing/geometry.py`
+- [ ] Implement:
+  - [ ] `distance(p1, p2)`
+  - [ ] `inter_ocular_distance(landmarks)`
+  - [ ] `normalized_distance(p1, p2, iod)`
+- [ ] Use `IOD = distance(33, 263)`
+- [ ] Apply to all distance-based features
+- [ ] Formula check: `normalized = distance(p1, p2) / IOD`
+
+## PHASE 5 — Head Pose Stabilization (FIX 2)
+- [ ] Create `processing/head_pose.py`
+- [ ] Implement:
+  - [ ] `estimate_head_pose()`
+  - [ ] `reject_unstable_frames()`
+  - [ ] `align_landmarks()`
+- [ ] Compute yaw, pitch, roll using `cv2.solvePnP()`
+- [ ] Use anchor points:
+  - [ ] `1` (nose)
+  - [ ] `33` (left eye)
+  - [ ] `263` (right eye)
+  - [ ] `152` (chin)
+- [ ] Frame rejection rules:
+  - [ ] `|yaw| > 35°`
+  - [ ] `|pitch| > 25°`
+- [ ] If unstable, skip feature update
+
+## PHASE 6 — Frame Buffer
+- [ ] Create `core/frame_buffer.py`
+- [ ] Use `buffer = deque(maxlen=150)`
+- [ ] Store per frame:
+  - [ ] `timestamp`
+  - [ ] `landmarks`
+  - [ ] `head_pose`
+  - [ ] `features`
+- [ ] Verify: 150 frames ≈ 10 seconds at 15 FPS
+
+## PHASE 7 — Feature Base Class
+- [ ] Create `features/base_feature.py`
+- [ ] Add base class:
+
+```python
+class BaseFeature:
+    def __init__(self, name):
+        self.name = name
+        self.history = []
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        raise NotImplementedError
+
+    def update_history(self, value):
+        self.history.append(value)
+```
+
+- [ ] Ensure all features inherit from this class
+
+## PHASE 8 — Implement All 34 Features
+
+### Module A — Facial AU Features (9)
+- [ ] File: `features/facial_au_features.py`
+- [ ] Implement:
+  - [ ] `AU12Mean`
+  - [ ] `AU12Variance`
+  - [ ] `AU12ActivationFrequency`
+  - [ ] `AU15MeanAmplitude`
+  - [ ] `AU4MeanActivation`
+  - [ ] `AU4DurationRatio`
+  - [ ] `AU1AU2PeakIntensity`
+  - [ ] `AU20ActivationRate`
+  - [ ] `LipCompressionFrequency`
+- [ ] Example formula: `AU12Mean = mean(normalized_distance(61, 291))`
+
+### Module B — Eye Features (6)
+- [ ] File: `features/eye_features.py`
+- [ ] Implement:
+  - [ ] `BlinkRate`
+  - [ ] `BlinkClusterDensity`
+  - [ ] `BaselineEyeOpenness`
+  - [ ] `GazeShiftFrequency`
+  - [ ] `EyeContactRatio`
+  - [ ] `DownwardGazeFrequency`
+- [ ] Blink landmarks: `145, 159, 374, 386`
+
+### Module C — Head Motion Features (5)
+- [ ] File: `features/head_motion_features.py`
+- [ ] Implement:
+  - [ ] `MeanHeadVelocity`
+  - [ ] `HeadVelocityPeak`
+  - [ ] `HeadMotionEnergy`
+  - [ ] `LandmarkDisplacementMean`
+  - [ ] `PostureRigidityIndex`
+
+### Module D — Derived Behavioral Features (8)
+- [ ] File: `features/derived_features.py`
+- [ ] Implement:
+  - [ ] `OverallAUVariance`
+  - [ ] `FacialEmotionalRange`
+  - [ ] `FacialTransitionFrequency`
+  - [ ] `NearZeroAUActivationRatio`
+  - [ ] `MotionEnergyFloorScore`
+  - [ ] `GestureFrequency`
+  - [ ] `MicroMotionEnergy`
+  - [ ] `ShoulderElevationIndex`
+
+### Module E — Temporal Features (6)
+- [ ] File: `features/temporal_features.py`
+- [ ] Implement:
+  - [ ] `ResponseLatencyMean`
+  - [ ] `SpeechOnsetDelay`
+  - [ ] `NodOnsetLatency`
+  - [ ] `PauseDurationMean`
+  - [ ] `ExtendedSilenceRatio`
+  - [ ] `ReactionTimeInstabilityIndex`
+
+- [ ] Count check: `9 + 6 + 5 + 8 + 6 = 34`
+
+## PHASE 9 — Feature Registry
+- [ ] Create `core/feature_registry.py`
+- [ ] Register all 34 feature classes
+- [ ] Structure:
+
+```python
+FEATURE_REGISTRY = [
+    AU12Mean(),
+    AU12Variance(),
+    BlinkRate(),
+    MeanHeadVelocity(),
+    # ... all remaining features
+]
+```
+
+- [ ] Pipeline execution pattern:
+
+```python
+for feature in FEATURE_REGISTRY:
+    value = feature.compute(landmarks, frame_buffer, timestamp)
+```
+
+## PHASE 10 — EMA Smoothing (FIX 3)
+- [ ] Create `processing/ema_smoothing.py`
+- [ ] Implement EMA:
+
+```text
+EMA_t = αx_t + (1 − α)EMA_(t−1)
+```
+
+- [ ] Default `α = 0.3`
+- [ ] Apply after raw feature computation
+
+## PHASE 11 — Baseline System
+- [ ] Collect baseline for 10 seconds
+- [ ] Compute per feature:
+  - [ ] mean (`μ`)
+  - [ ] standard deviation (`σ`)
+
+## PHASE 12 — Feature Normalization
+- [ ] Apply:
+
+```text
+z = (value − μ) / σ
+scaled = 1 / (1 + e^(−z))
+```
+
+- [ ] Output range check: `0 to 1`
+
+## PHASE 13 — CSV Logging
+- [ ] Create `output/csv_logger.py`
+- [ ] Log timestamp + 34 scaled features
+- [ ] Example header:
+
+```text
+timestamp,S_AU12Mean,S_BlinkRate,S_EyeContactRatio,...
+```
+
+- [ ] Header length check: 35 columns (1 timestamp + 34 features)
+
+## PHASE 14 — Pipeline Runner
+- [ ] Create `run_pipeline.py`
+- [ ] Main loop order:
+  - [ ] capture frame
+  - [ ] detect landmarks
+  - [ ] extract subset
+  - [ ] normalize geometry
+  - [ ] estimate head pose
+  - [ ] add to frame buffer
+  - [ ] compute features
+  - [ ] apply EMA
+  - [ ] normalize
+  - [ ] log CSV
+
+---
+
+## Notes
+- Keep this as an experiment repo; keep production repo stable.
+- Suggested workflow: `main repo = stable`, `experiment repo = iterative`.
