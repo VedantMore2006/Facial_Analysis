@@ -26,7 +26,7 @@ def normalize_feature(value, mean, std):
         std: Baseline standard deviation (σ)
         
     Returns:
-        Scaled value in range [0, 1]
+        Scaled value in range [0, 1] with 7 decimal places
     """
 
     if std == 0 or std < 1e-6:
@@ -39,7 +39,10 @@ def normalize_feature(value, mean, std):
     scaled = 1 / (1 + np.exp(-z))
 
     # Hard clip to [0, 1] to ensure valid range
-    return float(np.clip(scaled, 0, 1))
+    clipped = float(np.clip(scaled, 0, 1))
+    
+    # Round to 7 decimal places for consistent precision
+    return round(clipped, 7)
 
 
 class FeatureNormalizer:
