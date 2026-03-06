@@ -38,7 +38,7 @@ class WindowAggregator:
         output_path : str, optional
             Path to save windowed dataset
         label : int or str, optional
-            Class label to assign (e.g., 0=Healthy, 1=Depression)
+            Optional class label to assign to all generated windows
 
         Returns
         -------
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     baseline_windowed = aggregator.aggregate_csv(
         csv_path='output/scaled/23_51_05_03.csv',
         output_path='ml/baseline_windows.csv',
-        label=0  # 0 = Healthy/Baseline
+        label=None
     )
 
     print(f"\n✓ Baseline aggregation complete")
