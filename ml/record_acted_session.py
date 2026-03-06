@@ -146,7 +146,7 @@ def generate_hybrid_dataset_now():
     dataset = generate_hybrid_dataset(
         baseline_stats_path='ml/baseline_stats.json',
         real_patterns_paths=real_patterns,
-        samples_per_class=2000,
+        samples_per_class=6000,
         output_path='ml/training_dataset_hybrid.csv'
     )
 

@@ -64,7 +64,7 @@ def main():
 
     # Step 2: Start webcam
     print("\nStarting webcam...")
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(2)  # Try default webcam first
 
     if not cap.isOpened():
         print("✗ Error: Cannot open webcam")

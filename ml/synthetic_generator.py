@@ -216,7 +216,7 @@ def generate_from_real_session(csv_path, disorder_name, window_duration=5.0, fps
 
 
 def generate_hybrid_dataset(baseline_stats_path, real_patterns_paths, 
-                           samples_per_class=2000, output_path=None):
+                           samples_per_class=6000, output_path=None):
     """
     Generate dataset mixing synthetic and real patterns.
 
