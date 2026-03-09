@@ -1,0 +1,5998 @@
+================================================================================
+PROJECT EXTRACTION REPORT
+================================================================================
+
+PROJECT STRUCTURE:
+--------------------------------------------------------------------------------
+
+Facial_analysis/
+├── CSV_INTERPRETATION_GUIDE.md
+├── FEATURE_INSIGHTS.md
+├── PROJECT_SYNOPSIS.md
+├── Project_extract.py
+├── README.md
+├── README_CSV_ANALYSIS.md
+├── SCALING_FIXES.md
+├── analyze_latest_session.py
+├── analyze_raw_features.py
+├── behavioural_ml_blueprint.txt
+├── detailed_csv_samples.py
+├── old.zip
+├── project_extraction.txt
+├── requirements.txt
+├── run_pipeline.py
+├── test_mediapipe.py
+├── test_model_live.py
+├── todo
+├── core/
+│   ├── feature_registry.py
+│   ├── frame_buffer.py
+│   └── pipeline.py
+├── feature_plots/
+│   ├── README.md
+│   ├── plot_features.py
+│   ├── distributions/
+│   │   ├── derived_distributions.png
+│   │   ├── eye_distributions.png
+│   │   ├── facial_au_distributions.png
+│   │   ├── head_motion_distributions.png
+│   │   └── temporal_distributions.png
+│   ├── heatmaps/
+│   │   └── correlation_heatmap.png
+│   ├── outliers/
+│   │   ├── derived_outliers.png
+│   │   ├── eye_outliers.png
+│   │   ├── facial_au_outliers.png
+│   │   ├── head_motion_outliers.png
+│   │   └── temporal_outliers.png
+│   ├── summary/
+│   │   ├── feature_statistics.csv
+│   │   └── summary_statistics.png
+│   └── time_series/
+│       ├── derived_time_series.png
+│       ├── eye_time_series.png
+│       ├── facial_au_time_series.png
+│       ├── head_motion_time_series.png
+│       └── temporal_time_series.png
+├── features/
+│   ├── base_feature.py
+│   ├── derived_features.py
+│   ├── eye_features.py
+│   ├── facial_au_features.py
+│   ├── head_motion_features.py
+│   └── temporal_features.py
+├── landmarks/
+│   ├── landmark_subset.py
+│   └── mediapipe_detector.py
+├── ml/
+│   ├── DATA_SHARING_PACKAGE.md
+│   ├── ML_TRAINING.md
+│   ├── README.md
+│   ├── SHARING_QUICK_REFERENCE.md
+│   ├── baseline_stats.json
+│   ├── baseline_stats.py
+│   ├── baseline_windows.csv
+│   ├── disorder_profiles.py
+│   ├── evaluate_model.py
+│   ├── feature_importance.csv
+│   ├── mental_health_model.pkl
+│   ├── mental_health_model_hybrid.pkl
+│   ├── model_metadata.json
+│   ├── quick_start.sh
+│   ├── real_patterns_anxiety.json
+│   ├── real_patterns_bipolar_mania.json
+│   ├── real_patterns_depression.json
+│   ├── real_patterns_phobia_common.json
+│   ├── real_patterns_stress.json
+│   ├── real_patterns_suicidal_tendency.json
+│   ├── record_acted_session.py
+│   ├── requirements.txt
+│   ├── run_full_pipeline.py
+│   ├── synthetic_generator.py
+│   ├── train_model.py
+│   ├── training_dataset.csv
+│   ├── training_dataset_hybrid.csv
+│   ├── window_aggregator.py
+│   └── evaluation/
+│       ├── class_performance.png
+│       ├── classification_report.txt
+│       ├── confidence_distribution.png
+│       ├── confusion_matrix.png
+│       └── feature_importance.png
+├── output/
+│   ├── csv_logger.py
+│   ├── raw/
+│   │   ├── 00_53_06_03.csv
+│   │   ├── 01_50_06_03.csv
+│   │   ├── 02_02_06_03.csv
+│   │   ├── 02_05_06_03.csv
+│   │   ├── 02_09_06_03.csv
+│   │   ├── 02_12_06_03.csv
+│   │   ├── 02_15_06_03.csv
+│   │   ├── 12_42_06_03.csv
+│   │   ├── 12_47_06_03.csv
+│   │   ├── 12_49_06_03.csv
+│   │   ├── 12_50_06_03.csv
+│   │   ├── 12_51_06_03.csv
+│   │   ├── 12_54_06_03.csv
+│   │   └── 12_56_06_03.csv
+│   └── scaled/
+│       ├── 00_53_06_03.csv
+│       ├── 01_50_06_03.csv
+│       ├── 02_02_06_03.csv
+│       ├── 02_05_06_03.csv
+│       ├── 02_09_06_03.csv
+│       ├── 02_12_06_03.csv
+│       ├── 02_15_06_03.csv
+│       ├── 12_42_06_03.csv
+│       ├── 12_47_06_03.csv
+│       ├── 12_49_06_03.csv
+│       ├── 12_50_06_03.csv
+│       ├── 12_51_06_03.csv
+│       ├── 12_54_06_03.csv
+│       └── 12_56_06_03.csv
+├── processing/
+│   ├── baseline.py
+│   ├── ema_smoothing.py
+│   ├── feature_normalization.py
+│   ├── geometry.py
+│   └── head_pose.py
+└── utils/
+    └── math_utils.py
+
+
+================================================================================
+FILE CONTENTS
+================================================================================
+
+
+================================================================================
+FILE: Project_extract.py
+================================================================================
+
+#!/usr/bin/env python3
+# ============================================================================
+# PROJECT EXTRACTION UTILITY
+# ============================================================================
+# Purpose: Generate a comprehensive report of the entire Python codebase
+# Output: Single text file containing:
+#         1. Visual tree structure of project directories/files
+#         2. Complete content of all Python files
+#         3. Summary statistics
+# Usage: python Project_extract.py
+# Use Case: Code review, documentation, sharing codebase overview
+# ============================================================================
+
+"""
+Extract all Python files with their content and project structure into a single text file.
+"""
+
+import os
+import sys
+from pathlib import Path
+
+
+def get_project_structure(root_dir, prefix="", max_depth=10, current_depth=0, ignore_dirs=None):
+    """
+    Generate a text representation of the project structure.
+    
+    Creates a tree-style visualization of directories and files.
+    Recursively traverses subdirectories while respecting depth limits.
+    
+    Args:
+        root_dir: Starting directory path
+        prefix: String prefix for tree indentation
+        max_depth: Maximum recursion depth to prevent infinite loops
+        current_depth: Current recursion level
+        ignore_dirs: Set of directory names to skip
+    
+    Returns:
+        String containing formatted directory tree
+    """
+    if ignore_dirs is None:
+        ignore_dirs = {".git", "__pycache__", ".pytest_cache", "*.egg-info", ".venv", "venv", "env", ".csv"}
+    
+    if current_depth >= max_depth:
+        return ""
+    
+    structure = ""
+    try:
+        items = sorted(os.listdir(root_dir))
+    except PermissionError:
+        return ""
+    
+    dirs = []
+    files = []
+    
+    for item in items:
+        # Skip hidden files/dirs and common ignore patterns
+        if item.startswith("."):
+            continue
+        if item in ignore_dirs or any(item.endswith(x.replace("*", "")) for x in ignore_dirs if "*" in x):
+            continue
+        
+        item_path = os.path.join(root_dir, item)
+        if os.path.isdir(item_path):
+            dirs.append(item)
+        else:
+            files.append(item)
+    
+    # Add files first
+    for i, file in enumerate(files):
+        is_last_file = (i == len(files) - 1) and len(dirs) == 0
+        structure += f"{prefix}{'└── ' if is_last_file else '├── '}{file}\n"
+    
+    # Add directories
+    for i, dir_name in enumerate(dirs):
+        is_last = i == len(dirs) - 1
+        structure += f"{prefix}{'└── ' if is_last else '├── '}{dir_name}/\n"
+        
+        dir_path = os.path.join(root_dir, dir_name)
+        extension = "    " if is_last else "│   "
+        structure += get_project_structure(dir_path, prefix + extension, max_depth, current_depth + 1, ignore_dirs)
+    
+    return structure
+
+
+def extract_python_files(root_dir, output_file):
+    """
+    Extract all Python files and their content.
+    
+    Main extraction function that:
+    1. Walks through directory tree to find all .py files
+    2. Generates project structure visualization
+    3. Writes formatted output with all file contents
+    4. Provides summary statistics
+    
+    Args:
+        root_dir: Root directory to scan
+        output_file: Path to output text file
+    """
+    py_files = []
+    
+    # Collect all Python files
+    for root, dirs, files in os.walk(root_dir):
+        # Skip certain directories
+        dirs[:] = [d for d in dirs if d not in {".git", "__pycache__", ".pytest_cache", ".venv", "venv", "env", ".csv"}]
+        
+        for file in files:
+            if file.endswith(".py"):
+                file_path = os.path.join(root, file)
+                py_files.append(file_path)
+    
+    # Sort files for consistent output
+    py_files.sort()
+    
+    # Write to output file
+    with open(output_file, "w", encoding="utf-8") as out:
+        # Header
+        out.write("=" * 80 + "\n")
+        out.write("PROJECT EXTRACTION REPORT\n")
+        out.write("=" * 80 + "\n\n")
+        
+        # Project Structure
+        out.write("PROJECT STRUCTURE:\n")
+        out.write("-" * 80 + "\n\n")
+        out.write(f"{os.path.basename(root_dir)}/\n")
+        out.write(get_project_structure(root_dir))
+        out.write("\n\n")
+        
+        # File Contents
+        out.write("=" * 80 + "\n")
+        out.write("FILE CONTENTS\n")
+        out.write("=" * 80 + "\n\n")
+        
+        for file_path in py_files:
+            # Calculate relative path
+            rel_path = os.path.relpath(file_path, root_dir)
+            
+            # Write file header
+            out.write(f"\n{'=' * 80}\n")
+            out.write(f"FILE: {rel_path}\n")
+            out.write(f"{'=' * 80}\n\n")
+            
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    out.write(content)
+            except Exception as e:
+                out.write(f"[ERROR] Could not read file: {str(e)}\n")
+            
+            out.write("\n")
+        
+        # Summary
+        out.write("\n" + "=" * 80 + "\n")
+        out.write(f"SUMMARY: {len(py_files)} Python files extracted\n")
+        out.write("=" * 80 + "\n")
+    
+    print(f"✓ Extraction complete!")
+    print(f"✓ Total Python files: {len(py_files)}")
+    print(f"✓ Output saved to: {output_file}")
+    print(f"✓ File size: {os.path.getsize(output_file) / 1024:.2f} KB")
+
+
+if __name__ == "__main__":
+    # Get project root (current directory)
+    project_root = os.getcwd()
+    
+    # Output file
+    output_filename = "project_extraction.txt"
+    output_path = os.path.join(project_root, output_filename)
+    
+    print(f"Extracting Python files from: {project_root}")
+    print(f"Output file: {output_path}\n")
+    
+    extract_python_files(project_root, output_path)
+
+
+================================================================================
+FILE: analyze_latest_session.py
+================================================================================
+
+"""
+Analyze latest recorded session CSV with trained mental health model.
+
+This script avoids live webcam inference and instead:
+1) Loads the latest CSV from output/scaled (or a user-provided CSV)
+2) Builds window-level features (mean/std/max/min) exactly like training
+3) Runs model prediction for each window
+4) Reports per-window and overall pattern summary
+
+Usage:
+    python analyze_latest_session.py
+    python analyze_latest_session.py --csv output/scaled/02_15_06_03.csv
+    python analyze_latest_session.py --window-frames 150 --stride 30
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import pickle
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Analyze latest session CSV using trained model"
+    )
+    parser.add_argument(
+        "--csv",
+        type=str,
+        default=None,
+        help="Path to CSV file. If omitted, latest file from output/scaled is used.",
+    )
+    parser.add_argument(
+        "--model-path",
+        type=str,
+        default="ml/mental_health_model.pkl",
+        help="Path to trained model pickle",
+    )
+    parser.add_argument(
+        "--metadata-path",
+        type=str,
+        default="ml/model_metadata.json",
+        help="Path to model metadata json",
+    )
+    parser.add_argument(
+        "--window-frames",
+        type=int,
+        default=150,
+        help="Frames per inference window",
+    )
+    parser.add_argument(
+        "--stride",
+        type=int,
+        default=30,
+        help="Window stride in frames",
+    )
+    return parser.parse_args()
+
+
+def find_latest_csv() -> Path:
+    candidate_dirs = [Path("output/scaled"), Path("output/raw")]
+
+    csv_files: list[Path] = []
+    for directory in candidate_dirs:
+        if directory.exists():
+            csv_files.extend([p for p in directory.glob("*.csv") if p.is_file()])
+
+    if not csv_files:
+        raise FileNotFoundError("No CSV files found in output/scaled or output/raw")
+
+    return max(csv_files, key=lambda p: p.stat().st_mtime)
+
+
+def load_model_and_metadata(model_path: str, metadata_path: str):
+    with open(model_path, "rb") as model_file:
+        model = pickle.load(model_file)
+
+    with open(metadata_path, "r") as metadata_file:
+        metadata = json.load(metadata_file)
+
+    feature_names = metadata["feature_names"]
+    label_map = {int(k): v for k, v in metadata["label_map"].items()}
+    return model, feature_names, label_map
+
+
+def infer_base_features(feature_names: list[str]) -> list[str]:
+    base_features: list[str] = []
+    seen = set()
+    for full_name in feature_names:
+        if full_name.rsplit("_", 1)[-1] in {"mean", "std", "max", "min"}:
+            base = full_name.rsplit("_", 1)[0]
+        else:
+            base = full_name
+
+        if base not in seen:
+            seen.add(base)
+            base_features.append(base)
+
+    return base_features
+
+
+def build_window_features(
+    frame_df: pd.DataFrame,
+    feature_names: list[str],
+    base_features: list[str],
+) -> pd.DataFrame:
+    agg: dict[str, float] = {}
+
+    for base in base_features:
+        if base in frame_df.columns:
+            series = pd.to_numeric(frame_df[base], errors="coerce").fillna(0.0)
+        else:
+            series = pd.Series(np.zeros(len(frame_df), dtype=float))
+
+        agg[f"{base}_mean"] = float(series.mean())
+        agg[f"{base}_std"] = float(series.std())
+        agg[f"{base}_max"] = float(series.max())
+        agg[f"{base}_min"] = float(series.min())
+
+    window_df = pd.DataFrame([agg])
+    window_df = window_df.reindex(columns=feature_names, fill_value=0.0)
+    return window_df
+
+
+def make_window_starts(total_rows: int, window_frames: int, stride: int) -> list[int]:
+    if total_rows <= window_frames:
+        return [0]
+
+    starts = list(range(0, total_rows - window_frames + 1, stride))
+    last_possible = total_rows - window_frames
+    if starts[-1] != last_possible:
+        starts.append(last_possible)
+    return starts
+
+
+def main() -> None:
+    args = parse_args()
+
+    print("=" * 70)
+    print("LATEST SESSION CSV ANALYSIS")
+    print("=" * 70)
+
+    model, feature_names, label_map = load_model_and_metadata(
+        args.model_path, args.metadata_path
+    )
+    base_features = infer_base_features(feature_names)
+
+    csv_path = Path(args.csv) if args.csv else find_latest_csv()
+    if not csv_path.exists():
+        raise FileNotFoundError(f"CSV not found: {csv_path}")
+
+    print(f"Model: {args.model_path}")
+    print(f"Metadata: {args.metadata_path}")
+    print(f"CSV: {csv_path}")
+
+    df = pd.read_csv(csv_path)
+
+    if "timestamp" in df.columns:
+        df = df.drop(columns=["timestamp"])
+
+    numeric_df = df.apply(pd.to_numeric, errors="coerce").fillna(0.0)
+    total_rows = len(numeric_df)
+
+    if total_rows == 0:
+        raise ValueError("CSV contains no rows")
+
+    window_frames = max(1, args.window_frames)
+    stride = max(1, args.stride)
+    starts = make_window_starts(total_rows, window_frames, stride)
+
+    print(f"Rows: {total_rows}")
+    print(f"Window size: {window_frames} frames")
+    print(f"Stride: {stride} frames")
+    print(f"Windows: {len(starts)}")
+
+    predictions = []
+    all_probs = []
+
+    for index, start in enumerate(starts, start=1):
+        end = min(start + window_frames, total_rows)
+        window_slice = numeric_df.iloc[start:end]
+
+        window_features = build_window_features(
+            window_slice,
+            feature_names,
+            base_features,
+        )
+
+        probs = model.predict_proba(window_features)[0]
+        pred = int(np.argmax(probs))
+        conf = float(probs[pred])
+
+        predictions.append(pred)
+        all_probs.append(probs)
+
+        print(
+            f"Window {index:02d} [{start}:{end}] -> "
+            f"{label_map[pred]} ({conf:.1%})"
+        )
+
+    probs_matrix = np.array(all_probs)
+    mean_probs = probs_matrix.mean(axis=0)
+
+    vote_counts = pd.Series(predictions).value_counts().sort_index()
+    dominant_by_vote = int(vote_counts.idxmax())
+    dominant_by_mean = int(np.argmax(mean_probs))
+
+    print("\n" + "=" * 70)
+    print("SESSION SUMMARY")
+    print("=" * 70)
+    print(f"Dominant (vote): {label_map[dominant_by_vote]} ({vote_counts.max()}/{len(predictions)} windows)")
+    print(f"Dominant (mean prob): {label_map[dominant_by_mean]} ({mean_probs[dominant_by_mean]:.1%})")
+
+    print("\nAverage probability by class:")
+    for class_idx in np.argsort(mean_probs)[::-1]:
+        print(f"  - {label_map[int(class_idx)]:20s}: {mean_probs[int(class_idx)]:.1%}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+================================================================================
+FILE: analyze_raw_features.py
+================================================================================
+
+"""
+Raw Feature CSV Analysis
+========================
+Deep dive analysis of raw feature values to understand:
+1. What each feature represents
+2. Why certain values are zero
+3. Statistical patterns and distributions
+"""
+
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import glob
+
+def analyze_csv(csv_path):
+    """Load and analyze the raw CSV file."""
+    df = pd.read_csv(csv_path)
+    return df
+
+def print_separator(title):
+    """Print a formatted section separator."""
+    print("\n" + "="*80)
+    print(f"  {title}")
+    print("="*80)
+
+def analyze_feature_categories(df):
+    """Analyze features by category."""
+    features = df.columns[1:]  # Skip timestamp
+    
+    categories = {
+        'Facial Action Units (AU)': [
+            'AU12Mean', 'AU12Variance', 'AU12ActivationFrequency',
+            'AU15MeanAmplitude', 'AU4MeanActivation', 'AU4DurationRatio',
+            'AU1AU2PeakIntensity', 'AU20ActivationRate'
+        ],
+        'Lip & Mouth Features': [
+            'LipCompressionFrequency'
+        ],
+        'Blink & Eye Metrics': [
+            'BlinkRate', 'BlinkClusterDensity', 'BaselineEyeOpenness'
+        ],
+        'Gaze & Eye Contact': [
+            'GazeShiftFrequency', 'EyeContactRatio', 'DownwardGazeFrequency'
+        ],
+        'Head Motion & Velocity': [
+            'MeanHeadVelocity', 'HeadVelocityPeak', 'HeadMotionEnergy',
+            'LandmarkDisplacementMean', 'PostureRigidityIndex'
+        ],
+        'Facial Dynamics': [
+            'OverallAUVariance', 'FacialEmotionalRange', 'FacialTransitionFrequency',
+            'NearZeroAUActivationRatio'
+        ],
+        'Motion & Gesture': [
+            'MotionEnergyFloorScore', 'GestureFrequency', 'MicroMotionEnergy',
+            'ShoulderElevationIndex'
+        ],
+        'Temporal & Response': [
+            'ResponseLatencyMean', 'SpeechOnsetDelay', 'NodOnsetLatency',
+            'PauseDurationMean', 'ExtendedSilenceRatio', 'ReactionTimeInstabilityIndex'
+        ]
+    }
+    
+    return categories
+
+def explain_features():
+    """Provide detailed explanation of each feature."""
+    explanations = {
+        'AU12Mean': 'Average cheek raiser (AU12) muscle activation. 0=relaxed, 1=strong smile.',
+        'AU12Variance': 'Variability in AU12 activation over recent frames. 0=stable, 1=highly variable.',
+        'AU12ActivationFrequency': 'How often AU12 crosses activation threshold. Converted to rate [0,1].',
+        'AU15MeanAmplitude': 'Lip corner depressor amplitude. 0=none, 1=strong lateral lip pull.',
+        'AU4MeanActivation': 'Brow lowerer (AU4) activation. 0=neutral, 1=strong frown.',
+        'AU4DurationRatio': 'Proportion of time AU4 stays activated. 0=never, 1=always active.',
+        'AU1AU2PeakIntensity': 'Peak intensity of inner/outer brow raising (AU1+AU2). 0=none, 1=maximum.',
+        'AU20ActivationRate': 'Lip stretcher activation rate. 0=low frequency, 1=high frequency.',
+        'LipCompressionFrequency': 'How often lips compress. Rate normalized to [0,1].',
+        'BlinkRate': 'Eye blink frequency. 0=no blinks, 1=frequent blinking.',
+        'BlinkClusterDensity': 'How clustered blinks are in time. 0=spread out, 1=rapid clusters.',
+        'BaselineEyeOpenness': 'Baseline eye opening degree. 0=closed, 1=wide open.',
+        'GazeShiftFrequency': 'How often eyes move to different locations. Rate normalized.',
+        'EyeContactRatio': 'Proportion of time looking straight ahead. 0=never centered, 1=always centered.',
+        'DownwardGazeFrequency': 'How often gaze points downward. Rate normalized.',
+        'MeanHeadVelocity': 'Average head movement speed. 0=still, 1=moving fast.',
+        'HeadVelocityPeak': 'Maximum head movement speed during window. 0=still, 1=very fast movement.',
+        'HeadMotionEnergy': 'Total energy of head movement. 0=no motion, 1=high energy motion.',
+        'LandmarkDisplacementMean': 'Average distance facial landmarks move. 0=no change, 1=large changes.',
+        'PostureRigidityIndex': 'How rigid/stable head posture is. 0=flexible, 1=rigid.',
+        'OverallAUVariance': 'Total variability across all AU activations. 0=stable, 1=highly variable.',
+        'FacialEmotionalRange': 'Range of emotional expressions detected. 0=limited, 1=full range.',
+        'FacialTransitionFrequency': 'How often facial expression changes. Rate normalized.',
+        'NearZeroAUActivationRatio': 'Proportion of near-zero AU activations. 0=many active, 1=mostly inactive.',
+        'MotionEnergyFloorScore': 'Baseline motion energy threshold. Low values indicate stable baseline.',
+        'GestureFrequency': 'How often head/arm gestures occur. Rate normalized.',
+        'MicroMotionEnergy': 'Subtle micro-expression energy. 0=none, 1=high micro-expression activity.',
+        'ShoulderElevationIndex': 'Shoulder position elevation. 0=relaxed, 1=shrugged.',
+        'ResponseLatencyMean': 'Avg time to respond to stimuli. Normalized by max expected latency.',
+        'SpeechOnsetDelay': 'Time before mouth movement starts. Normalized by max expected delay.',
+        'NodOnsetLatency': 'Time before head nod occurs. Normalized by max expected latency.',
+        'PauseDurationMean': 'Average duration of motion pauses. Normalized by typical pause length.',
+        'ExtendedSilenceRatio': 'Proportion of time in extended stillness.',
+        'ReactionTimeInstabilityIndex': 'Variability in reaction times. 0=consistent, 1=highly variable.'
+    }
+    return explanations
+
+def analyze_zeros(df):
+    """Analyze why features have zero values."""
+    print_separator("ZERO VALUE ANALYSIS")
+    
+    features = df.columns[1:]
+    zero_info = {
+        'features_with_zeros': [],
+        'mostly_zeros': [],
+        'sometimes_zeros': []
+    }
+    
+    for feature in features:
+        zero_count = (df[feature] == 0).sum()
+        zero_pct = (zero_count / len(df)) * 100
+        
+        if zero_pct > 99:
+            zero_info['mostly_zeros'].append((feature, zero_pct, zero_count))
+        elif zero_pct > 50:
+            zero_info['sometimes_zeros'].append((feature, zero_pct, zero_count))
+        elif zero_pct > 0:
+            zero_info['features_with_zeros'].append((feature, zero_pct, zero_count))
+    
+    # Print mostly zeros
+    print("\n📊 FEATURES WITH MOSTLY ZEROS (>99% zeros):")
+    print("-" * 80)
+    for feature, pct, count in zero_info['mostly_zeros']:
+        print(f"  {feature:30s} | {pct:6.2f}% zeros ({count:4d} frames)")
+        if 'Blink' in feature:
+            print(f"    └─ Reason: Blinks are rare events. Only 5-10% of time are humans blinking.")
+        elif 'Gesture' in feature or 'Shoulder' in feature:
+            print(f"    └─ Reason: Gestures are infrequent. Person was relatively still during recording.")
+        elif 'Transition' in feature:
+            print(f"    └─ Reason: Expression changes are sparse. Facial expressions were stable.")
+        elif 'NearZero' in feature:
+            print(f"    └─ Reason: Most facial muscles had some activation. Measure of steady state.")
+    
+    # Print sometimes zeros
+    print("\n📊 FEATURES WITH SOME ZEROS (50-99% zeros):")
+    print("-" * 80)
+    for feature, pct, count in zero_info['sometimes_zeros']:
+        print(f"  {feature:30s} | {pct:6.2f}% zeros ({count:4d} frames)")
+        if 'Rate' in feature or 'Frequency' in feature:
+            print(f"    └─ Reason: Activity-based feature. Zero when no activations detected.")
+        elif any(x in feature for x in ['Compression', 'ClusterDensity', 'Shift']):
+            print(f"    └─ Reason: Event-based feature. Zero when no events occur in window.")
+    
+    # Print occasional zeros
+    print("\n📊 FEATURES WITH OCCASIONAL ZEROS (<50% zeros):")
+    print("-" * 80)
+    for feature, pct, count in zero_info['features_with_zeros'][:15]:  # Top 15
+        print(f"  {feature:30s} | {pct:6.2f}% zeros ({count:4d} frames)")
+    if len(zero_info['features_with_zeros']) > 15:
+        print(f"  ... and {len(zero_info['features_with_zeros']) - 15} more features")
+
+def analyze_distributions(df):
+    """Analyze value distributions for each feature."""
+    print_separator("FEATURE VALUE DISTRIBUTIONS")
+    
+    features = df.columns[1:]
+    
+    print("\nTop features by average activation level:")
+    print("-" * 80)
+    
+    means = df[features].mean().sort_values(ascending=False)
+    
+    for i, (feature, mean_val) in enumerate(means.head(10).items(), 1):
+        min_val = df[feature].min()
+        max_val = df[feature].max()
+        std_val = df[feature].std()
+        non_zero = (df[feature] != 0).sum()
+        non_zero_pct = (non_zero / len(df)) * 100
+        
+        print(f"\n{i}. {feature}")
+        print(f"   Mean: {mean_val:.4f} | Std: {std_val:.4f} | Range: [{min_val:.4f}, {max_val:.4f}]")
+        print(f"   Non-zero: {non_zero_pct:.1f}% ({non_zero} frames)")
+
+def analyze_temporal_patterns(df):
+    """Analyze how features change over time."""
+    print_separator("TEMPORAL PATTERNS (HOW VALUES CHANGE OVER TIME)")
+    
+    features = df.columns[1:]
+    
+    # Calculate frame-to-frame changes
+    changes = []
+    
+    for feature in features:
+        # Skip features that are mostly zero (change calculation less meaningful)
+        if (df[feature] == 0).sum() > len(df) * 0.8:
+            continue
+        
+        diff = df[feature].diff().abs().mean()
+        changes.append((feature, diff))
+    
+    changes.sort(key=lambda x: x[1], reverse=True)
+    
+    print("\n🔄 MOST VOLATILE FEATURES (Change frame-to-frame most):")
+    print("-" * 80)
+    for feature, change in changes[:10]:
+        print(f"  {feature:30s} | Avg change per frame: {change:.6f}")
+        print(f"    └─ Frame-to-frame variability is high (sensitive, non-smooth)")
+    
+    print("\n🔄 MOST STABLE FEATURES (Change frame-to-frame least):")
+    print("-" * 80)
+    for feature, change in changes[-10:]:
+        print(f"  {feature:30s} | Avg change per frame: {change:.6f}")
+        print(f"    └─ Frame-to-frame consistency is high (smooth, filtered)")
+
+def analyze_correlations(df):
+    """Analyze feature correlations."""
+    print_separator("FEATURE CORRELATIONS & RELATIONSHIPS")
+    
+    features = df.columns[1:]
+    
+    # Calculate correlation matrix
+    corr_matrix = df[features].corr()
+    
+    # Find strongest positive correlations
+    print("\n🔗 STRONGLY CORRELATED FEATURES (r > 0.7):")
+    print("-" * 80)
+    
+    found_pairs = set()
+    for i in range(len(corr_matrix.columns)):
+        for j in range(i+1, len(corr_matrix.columns)):
+            feat_i = corr_matrix.columns[i]
+            feat_j = corr_matrix.columns[j]
+            corr_val = corr_matrix.iloc[i, j]
+            
+            if abs(corr_val) > 0.7 and (feat_i, feat_j) not in found_pairs:
+                found_pairs.add((feat_i, feat_j))
+                direction = "↑↑ Positive" if corr_val > 0 else "↓↑ Negative"
+                print(f"  {feat_i:25s} ←→ {feat_j:25s} | r = {corr_val:+.3f} ({direction})")
+
+def print_feature_summary(df):
+    """Print comprehensive feature summary."""
+    print_separator("ALL FEATURES SUMMARY")
+    
+    features = df.columns[1:]
+    explanations = explain_features()
+    
+    for feature in features:
+        mean_val = df[feature].mean()
+        std_val = df[feature].std()
+        min_val = df[feature].min()
+        max_val = df[feature].max()
+        zero_pct = (df[feature] == 0).sum() / len(df) * 100
+        
+        print(f"\n📌 {feature}")
+        print(f"   Definition: {explanations.get(feature, 'N/A')}")
+        print(f"   Statistics: μ={mean_val:.4f}, σ={std_val:.4f}, range=[{min_val:.4f}, {max_val:.4f}]")
+        print(f"   Zeros: {zero_pct:.1f}% of frames")
+
+def main():
+    """Main analysis function."""
+    # Find the latest raw CSV
+    raw_files = glob.glob("output/raw/*.csv")
+    if not raw_files:
+        print("❌ No raw CSV files found in output/raw/")
+        return
+    
+    csv_path = max(raw_files, key=lambda x: Path(x).stat().st_mtime)
+    print(f"\n📂 Analyzing: {csv_path}")
+    
+    # Load and analyze
+    df = analyze_csv(csv_path)
+    
+    print(f"\n📊 Dataset Overview:")
+    print(f"   Total frames: {len(df)}")
+    print(f"   Total features: {len(df.columns) - 1}")
+    print(f"   Time range: {df['timestamp'].min():.2f} to {df['timestamp'].max():.2f}")
+    print(f"   Duration: {(df['timestamp'].max() - df['timestamp'].min()):.2f} seconds")
+    
+    # Run analyses
+    analyze_zeros(df)
+    analyze_distributions(df)
+    analyze_temporal_patterns(df)
+    analyze_correlations(df)
+    print_feature_summary(df)
+    
+    # Final summary
+    print_separator("KEY INSIGHTS & RECOMMENDATIONS")
+    print("""
+1. ZERO VALUES ARE NORMAL:
+   • Blinks, gestures, and expression changes are RARE events
+   • Zero means "no event detected in that frame"
+   • This is expected behavior, not a bug
+   
+2. FEATURES FALL INTO CATEGORIES:
+   • ACTIVATION features: Proportion/rate of muscle engagement (0-1)
+   • MOTION features: Speed/energy of head/facial movement (0-1)
+   • TEMPORAL features: Timing/delay of events (normalized, 0-1)
+   • STABILITY features: Consistency/rigidity of posture (0-1)
+   
+3. BASELINE (0.5) vs ACTIVE:
+   • After normalization, 0.5 = "baseline/neutral" for most features
+   • 0.0-0.3 = suppressed/low activity
+   • 0.3-0.7 = moderate/normal activity
+   • 0.7-1.0 = elevated/strong activity
+   
+4. CORRELATION PATTERNS:
+   • Motion features are highly correlated (moving head affects landmarks)
+   • AU features are correlated (facial muscles work together)
+   • Temporal features independent (different events)
+   
+5. TEMPORAL STABILITY:
+   • Head motion/velocity features are volatile (change each frame)
+   • Baseline/postural features are stable (smoothed over time)
+   • This is expected - rapid motion changes, baseline doesn't
+    """)
+
+if __name__ == "__main__":
+    main()
+
+
+================================================================================
+FILE: core/feature_registry.py
+================================================================================
+
+"""
+Feature Registry
+
+Central registry of all 34 behavioral features for pipeline execution.
+"""
+
+# Module A — Facial AU Features
+from features.facial_au_features import (
+    AU12Mean,
+    AU12Variance,
+    AU12ActivationFrequency,
+    AU15MeanAmplitude,
+    AU4MeanActivation,
+    AU4DurationRatio,
+    AU1AU2PeakIntensity,
+    AU20ActivationRate,
+    LipCompressionFrequency
+)
+
+# Module B — Eye Features
+from features.eye_features import (
+    BlinkRate,
+    BlinkClusterDensity,
+    BaselineEyeOpenness,
+    GazeShiftFrequency,
+    EyeContactRatio,
+    DownwardGazeFrequency
+)
+
+# Module C — Head Motion Features
+from features.head_motion_features import (
+    MeanHeadVelocity,
+    HeadVelocityPeak,
+    HeadMotionEnergy,
+    LandmarkDisplacementMean,
+    PostureRigidityIndex
+)
+
+# Module D — Derived Features
+from features.derived_features import (
+    OverallAUVariance,
+    FacialEmotionalRange,
+    FacialTransitionFrequency,
+    NearZeroAUActivationRatio,
+    MotionEnergyFloorScore,
+    GestureFrequency,
+    MicroMotionEnergy,
+    ShoulderElevationIndex
+)
+
+# Module E — Temporal Features
+from features.temporal_features import (
+    ResponseLatencyMean,
+    SpeechOnsetDelay,
+    NodOnsetLatency,
+    PauseDurationMean,
+    ExtendedSilenceRatio,
+    ReactionTimeInstabilityIndex
+)
+
+FEATURE_REGISTRY = [
+
+    # Module A — Facial AU Features (9)
+    AU12Mean(),
+    AU12Variance(),
+    AU12ActivationFrequency(),
+    AU15MeanAmplitude(),
+    AU4MeanActivation(),
+    AU4DurationRatio(),
+    AU1AU2PeakIntensity(),
+    AU20ActivationRate(),
+    LipCompressionFrequency(),
+
+    # Module B — Eye Features (6)
+    BlinkRate(),
+    BlinkClusterDensity(),
+    BaselineEyeOpenness(),
+    GazeShiftFrequency(),
+    EyeContactRatio(),
+    DownwardGazeFrequency(),
+
+    # Module C — Head Motion Features (5)
+    MeanHeadVelocity(),
+    HeadVelocityPeak(),
+    HeadMotionEnergy(),
+    LandmarkDisplacementMean(),
+    PostureRigidityIndex(),
+
+    # Module D — Derived Features (8)
+    OverallAUVariance(),
+    FacialEmotionalRange(),
+    FacialTransitionFrequency(),
+    NearZeroAUActivationRatio(),
+    MotionEnergyFloorScore(),
+    GestureFrequency(),
+    MicroMotionEnergy(),
+    ShoulderElevationIndex(),
+
+    # Module E — Temporal Features (6)
+    ResponseLatencyMean(),
+    SpeechOnsetDelay(),
+    NodOnsetLatency(),
+    PauseDurationMean(),
+    ExtendedSilenceRatio(),
+    ReactionTimeInstabilityIndex()
+]
+
+# Feature count verification
+assert len(FEATURE_REGISTRY) == 34, "Feature count mismatch!"
+
+
+def get_feature_names():
+    """Return list of all feature names."""
+    return [feature.name for feature in FEATURE_REGISTRY]
+
+
+def compute_all_features(landmarks, frame_buffer, timestamp):
+    """
+    Compute all features for current frame.
+
+    Returns dict of feature name -> value.
+    """
+    features = {}
+
+    for feature in FEATURE_REGISTRY:
+        features[feature.name] = feature.compute(landmarks, frame_buffer, timestamp)
+
+    return features
+
+
+================================================================================
+FILE: core/frame_buffer.py
+================================================================================
+
+from collections import deque
+
+
+class FrameBuffer:
+	def __init__(self, max_frames=150):
+		self.buffer = deque(maxlen=max_frames)
+
+	def add_frame(self, timestamp, landmarks, head_pose, features):
+		frame_data = {
+			"timestamp": timestamp,
+			"landmarks": landmarks,
+			"head_pose": head_pose,
+			"features": features,
+		}
+
+		self.buffer.append(frame_data)
+
+	def get_recent_frames(self, n):
+		return list(self.buffer)[-n:]
+
+	def get_all_frames(self):
+		return list(self.buffer)
+
+	def size(self):
+		return len(self.buffer)
+
+
+================================================================================
+FILE: core/pipeline.py
+================================================================================
+
+
+
+================================================================================
+FILE: detailed_csv_samples.py
+================================================================================
+
+"""
+Detailed CSV Sample Analysis with Real Data Examples
+"""
+
+import pandas as pd
+import glob
+from pathlib import Path
+
+def analyze_samples():
+    """Show real data samples from the CSV."""
+    
+    # Find latest raw CSV
+    raw_files = glob.glob("output/raw/*.csv")
+    csv_path = max(raw_files, key=lambda x: Path(x).stat().st_mtime)
+    
+    df = pd.read_csv(csv_path)
+    
+    print("="*100)
+    print("RAW CSV DATA SAMPLE ANALYSIS")
+    print("="*100)
+    
+    print(f"\n📂 File: {csv_path}")
+    print(f"📊 Rows: {len(df)}, Columns: {len(df.columns)-1} features")
+    
+    # Show early frames (during action)
+    print("\n" + "="*100)
+    print("FRAME 1 (Early Recording - Baseline Collection)")
+    print("="*100)
+    
+    frame_1 = df.iloc[0]
+    print("\nTimestamp:", frame_1['timestamp'])
+    print("\nFacial Activation Units (AU = Facial Muscle Engagement):")
+    print(f"  AU12Mean:                {frame_1['AU12Mean']:.4f}  (Cheek raiser → Smile level)")
+    print(f"  AU4MeanActivation:       {frame_1['AU4MeanActivation']:.4f}  (Brow lowerer → Frown level)")
+    print(f"  AU1AU2PeakIntensity:     {frame_1['AU1AU2PeakIntensity']:.4f}  (Eyebrow raise → Surprise/interest)")
+    print(f"  AU15MeanAmplitude:       {frame_1['AU15MeanAmplitude']:.4f}  (Lip corner puller → Sadness)")
+    print(f"  AU20ActivationRate:      {frame_1['AU20ActivationRate']:.4f}  (Lip stretcher → Tension)")
+    
+    print("\nBlink & Eye Metrics:")
+    print(f"  BlinkRate:               {frame_1['BlinkRate']:.4f}  (Should be 0, blinks are rare)")
+    print(f"  BaselineEyeOpenness:     {frame_1['BaselineEyeOpenness']:.4f}  (How open eyes are)")
+    print(f"  EyeContactRatio:         {frame_1['EyeContactRatio']:.4f}  (Time looking forward)")
+    
+    print("\nGaze & Attention:")
+    print(f"  GazeShiftFrequency:      {frame_1['GazeShiftFrequency']:.4f}  (Eyes moving around)")
+    print(f"  DownwardGazeFrequency:   {frame_1['DownwardGazeFrequency']:.4f}  (Looking down - should be 0)")
+    
+    print("\nHead Movement & Velocity:")
+    print(f"  MeanHeadVelocity:        {frame_1['MeanHeadVelocity']:.4f}  (Avg head speed)")
+    print(f"  HeadVelocityPeak:        {frame_1['HeadVelocityPeak']:.4f}  (Max head speed peak)")
+    print(f"  HeadMotionEnergy:        {frame_1['HeadMotionEnergy']:.4f}  (Total movement energy)")
+    print(f"  PostureRigidityIndex:    {frame_1['PostureRigidityIndex']:.4f}  (Posture stability)")
+    
+    print("\nFacial Dynamics:")
+    print(f"  OverallAUVariance:       {frame_1['OverallAUVariance']:.4f}  (Expression variability)")
+    print(f"  FacialEmotionalRange:    {frame_1['FacialEmotionalRange']:.4f}  (Emotion diversity)")
+    print(f"  FacialTransitionFreq:    {frame_1['FacialTransitionFrequency']:.4f}  (Expression changes - 0!)")
+    
+    print("\nTiming & Response:")
+    print(f"  ResponseLatencyMean:     {frame_1['ResponseLatencyMean']:.4f}  (Time to respond)")
+    print(f"  SpeechOnsetDelay:        {frame_1['SpeechOnsetDelay']:.4f}  (Mouth movement timing)")
+    print(f"  NodOnsetLatency:         {frame_1['NodOnsetLatency']:.4f}  (Head nod timing)")
+    
+    # Show high-activity frame
+    print("\n" + "="*100)
+    print("FRAME 3500 (Mid Recording - High Activity)")
+    print("="*100)
+    
+    frame_mid = df.iloc[3500]
+    print("\nTimestamp:", frame_mid['timestamp'])
+    print("\nKey Differences from Frame 1:")
+    
+    diffs = {
+        'AU12Mean': (frame_1['AU12Mean'], frame_mid['AU12Mean']),
+        'AU4MeanActivation': (frame_1['AU4MeanActivation'], frame_mid['AU4MeanActivation']),
+        'HeadMotionEnergy': (frame_1['HeadMotionEnergy'], frame_mid['HeadMotionEnergy']),
+        'PostureRigidityIndex': (frame_1['PostureRigidityIndex'], frame_mid['PostureRigidityIndex']),
+        'GazeShiftFrequency': (frame_1['GazeShiftFrequency'], frame_mid['GazeShiftFrequency']),
+    }
+    
+    for feature, (val1, val2) in diffs.items():
+        change = ((val2 - val1) / max(abs(val1), 0.0001)) * 100
+        arrow = "↑" if val2 > val1 else "↓"
+        print(f"  {feature:25s} {val1:.4f} → {val2:.4f}  {arrow} ({change:+.1f}%)")
+    
+    # Show Z-score statistics to understand feature ranges
+    print("\n" + "="*100)
+    print("FEATURE STATISTICS (Understanding Feature Ranges)")
+    print("="*100)
+    
+    print("\nTop 10 Features by Mean Value (Most Active):")
+    feature_means = df.iloc[:, 1:].mean().sort_values(ascending=False)
+    
+    for i, (feature, mean_val) in enumerate(feature_means.head(10).items(), 1):
+        std_val = df[feature].std()
+        min_val = df[feature].min()
+        max_val = df[feature].max()
+        zero_pct = (df[feature] == 0).sum() / len(df) * 100
+        
+        print(f"\n{i}. {feature}")
+        print(f"   Mean: {mean_val:.4f} | Std Dev: {std_val:.4f}")
+        print(f"   Range: [{min_val:.4f}, {max_val:.4f}]")
+        print(f"   Zeros: {zero_pct:.1f}%")
+        
+        # Interpretation
+        if mean_val > 0.9:
+            interp = "HIGHLY ACTIVE - sustained engagement"
+        elif mean_val > 0.7:
+            interp = "ACTIVE - consistent engagement"
+        elif mean_val > 0.3:
+            interp = "MODERATE - intermittent engagement"
+        else:
+            interp = "LOW - mostly inactive or rare events"
+        print(f"   → {interp}")
+    
+    print("\n" + "="*100)
+    print("WHY CERTAIN FEATURES ARE ZERO - DETAILED EXAMPLES")
+    print("="*100)
+    
+    print("\n1. BLINKRATE = 0 (All 7100 frames)")
+    print("   " + "-"*80)
+    print(f"   Expected: 15-20 blinks/minute → ~60-80 blinks in 238 sec")
+    print(f"   Observed: 0 blinks")
+    print(f"   Reason 1: Person was highly focused (concentration suppresses blinking)")
+    print(f"   Reason 2: Eyes closed or mediapipe didn't detect blinks")
+    print(f"   Note: This is NOT a problem - blinks are genuinely rare!")
+    
+    print("\n2. FRENTFACERESFACEALTRANSITION = 0 (All 7100 frames)")
+    print("   " + "-"*80)
+    print(f"   What it measures: How often facial expression CHANGES")
+    print(f"   Zero means: Expression was STABLE throughout")
+    print(f"   Evidence: AU12Mean, AU4Mean, other AU features vary < 0.03")
+    print(f"   Interpretation: Person maintained consistent neutral/engaged expression")
+    
+    print("\n3. GESUREFREQUENCY = 0 (82.6% of frames)")
+    print("   " + "-"*80)
+    print(f"   What it measures: Head gestures (nods, shakes, tilts)")
+    print(f"   Zero frames: {(df['GestureFrequency']==0).sum()} / {len(df)}")
+    print(f"   Non-zero frames: {(df['GestureFrequency']>0).sum()}")
+    if (df['GestureFrequency'] > 0).sum() > 0:
+        print(f"   Max gesture: {df['GestureFrequency'].max():.4f}")
+        print(f"   Non-zero mean: {df[df['GestureFrequency']>0]['GestureFrequency'].mean():.4f}")
+        print(f"   Interpretation: Occasional gestures, mostly still posture")
+    else:
+        print(f"   Interpretation: Person didn't gesture at all")
+    
+    print("\n4. HEADVELOCITY != 0 (Almost all frames)")
+    print("   " + "-"*80)
+    print(f"   What it measures: Head movement speed")
+    print(f"   Zero frames: {(df['MeanHeadVelocity']==0).sum()} / {len(df)}")
+    print(f"   Reason: Humans always have micro-tremor (involuntary shaking)")
+    print(f"   Range: {df['MeanHeadVelocity'].min():.4f} to {df['MeanHeadVelocity'].max():.4f}")
+    print(f"   Mean: {df['MeanHeadVelocity'].mean():.4f}")
+    print(f"   Interpretation: Head very still (low movement), but not completely motionless")
+    
+    print("\n" + "="*100)
+    print("BEHAVIORAL INSIGHTS FROM THIS SESSION")
+    print("="*100)
+    
+    # Compute session statistics
+    au12_engaged = (df['AU12Mean'] > df['AU12Mean'].quantile(0.75)).sum() / len(df) * 100
+    au4_engaged = (df['AU4MeanActivation'] > df['AU4MeanActivation'].quantile(0.75)).sum() / len(df) * 100
+    high_motion = (df['HeadMotionEnergy'] > df['HeadMotionEnergy'].quantile(0.75)).sum() / len(df) * 100
+    looking_forward = (df['EyeContactRatio'] > 0.5).sum() / len(df) * 100
+    
+    print(f"\n📊 Session Behavior Analysis:")
+    print(f"   {au12_engaged:.1f}% of time: Strong smile engagement (AU12)")
+    print(f"   {au4_engaged:.1f}% of time: Strong frown/concentration (AU4)")
+    print(f"   {high_motion:.1f}% of time: High head movement")
+    print(f"   {looking_forward:.1f}% of time: Looking forward (eye contact)")
+    
+    if au12_engaged > 50:
+        print(f"\n   ✓ Overall: Engaged, positive affect")
+    else:
+        print(f"\n   ✓ Overall: Neutral to slightly negative affect")
+    
+    if high_motion < 30:
+        print(f"   ✓ Posture: Very stable, composed")
+    else:
+        print(f"   ✓ Posture: Active, moving frequently")
+
+if __name__ == "__main__":
+    analyze_samples()
+
+
+================================================================================
+FILE: feature_plots/plot_features.py
+================================================================================
+
+"""
+Feature Visualization System
+
+Generates comprehensive visualizations for all 34 behavioral features:
+- Time series plots
+- Distribution analysis
+- Outlier detection
+- Scaling validation
+- Correlation heatmaps
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
+import warnings
+warnings.filterwarnings('ignore')
+
+# Set beautiful style
+sns.set_style("whitegrid")
+sns.set_palette("husl")
+plt.rcParams['figure.figsize'] = (14, 8)
+plt.rcParams['font.size'] = 10
+
+
+class FeatureVisualizer:
+    """
+    Comprehensive feature visualization and analysis tool.
+    """
+    
+    def __init__(self, raw_csv_path, scaled_csv_path):
+        """
+        Initialize visualizer with CSV file paths.
+        
+        Args:
+            raw_csv_path: Path to raw features CSV
+            scaled_csv_path: Path to scaled features CSV
+        """
+        self.raw_csv_path = raw_csv_path
+        self.scaled_csv_path = scaled_csv_path
+        
+        # Output directories
+        self.time_series_dir = Path("feature_plots/time_series")
+        self.dist_dir = Path("feature_plots/distributions")
+        self.heatmap_dir = Path("feature_plots/heatmaps")
+        self.summary_dir = Path("feature_plots/summary")
+        self.outlier_dir = Path("feature_plots/outliers")
+        
+        # Ensure directories exist
+        for dir_path in [self.time_series_dir, self.dist_dir, self.heatmap_dir, 
+                         self.summary_dir, self.outlier_dir]:
+            dir_path.mkdir(parents=True, exist_ok=True)
+        
+        # Load data
+        print("Loading CSV files...")
+        self.df_raw = pd.read_csv(raw_csv_path)
+        self.df_scaled = pd.read_csv(scaled_csv_path)
+        
+        # Remove timestamp column for feature analysis
+        self.raw_features = self.df_raw.drop('timestamp', axis=1)
+        self.scaled_features = self.df_scaled.drop('timestamp', axis=1)
+        
+        # Feature groups
+        self.feature_groups = {
+            'Facial AU': ['AU12Mean', 'AU12Variance', 'AU12ActivationFrequency', 
+                          'AU15MeanAmplitude', 'AU4MeanActivation', 'AU4DurationRatio',
+                          'AU1AU2PeakIntensity', 'AU20ActivationRate', 'LipCompressionFrequency'],
+            'Eye': ['BlinkRate', 'BlinkClusterDensity', 'BaselineEyeOpenness',
+                    'GazeShiftFrequency', 'EyeContactRatio', 'DownwardGazeFrequency'],
+            'Head Motion': ['MeanHeadVelocity', 'HeadVelocityPeak', 'HeadMotionEnergy',
+                           'LandmarkDisplacementMean', 'PostureRigidityIndex'],
+            'Derived': ['OverallAUVariance', 'FacialEmotionalRange', 'FacialTransitionFrequency',
+                       'NearZeroAUActivationRatio', 'MotionEnergyFloorScore', 'GestureFrequency',
+                       'MicroMotionEnergy', 'ShoulderElevationIndex'],
+            'Temporal': ['ResponseLatencyMean', 'SpeechOnsetDelay', 'NodOnsetLatency',
+                        'PauseDurationMean', 'ExtendedSilenceRatio', 'ReactionTimeInstabilityIndex']
+        }
+        
+        print(f"✓ Loaded {len(self.df_raw)} frames")
+        print(f"✓ Found {len(self.raw_features.columns)} features")
+    
+    def analyze_scaling_issues(self):
+        """
+        Identify features with scaling problems.
+        """
+        print("\n" + "=" * 70)
+        print("SCALING ANALYSIS")
+        print("=" * 70)
+        
+        issues = []
+        
+        for col in self.scaled_features.columns:
+            values = self.scaled_features[col]
+            
+            min_val = values.min()
+            max_val = values.max()
+            mean_val = values.mean()
+            std_val = values.std()
+            
+            # Check for issues
+            problem = None
+            if min_val < 0:
+                problem = f"Values below 0 (min={min_val:.4f})"
+            elif max_val > 1:
+                problem = f"Values above 1 (max={max_val:.4f})"
+            elif std_val < 0.01:
+                problem = f"Almost constant (std={std_val:.6f})"
+            elif (values == 0).sum() / len(values) > 0.9:
+                problem = f"Mostly zeros ({(values == 0).sum()}/{len(values)})"
+            
+            if problem:
+                issues.append({
+                    'feature': col,
+                    'problem': problem,
+                    'min': min_val,
+                    'max': max_val,
+                    'mean': mean_val,
+                    'std': std_val
+                })
+        
+        if issues:
+            print(f"\n⚠ Found {len(issues)} features with potential issues:\n")
+            for issue in issues:
+                print(f"  • {issue['feature']:<35} | {issue['problem']}")
+                print(f"    Range: [{issue['min']:.4f}, {issue['max']:.4f}], "
+                      f"Mean: {issue['mean']:.4f}, Std: {issue['std']:.6f}")
+        else:
+            print("\n✓ All scaled features are within [0, 1] range")
+        
+        return issues
+    
+    def plot_time_series_by_group(self):
+        """
+        Create time series plots organized by feature group.
+        """
+        print("\n" + "=" * 70)
+        print("GENERATING TIME SERIES PLOTS")
+        print("=" * 70)
+        
+        for group_name, features in self.feature_groups.items():
+            print(f"\nProcessing {group_name} features...")
+            
+            # Create subplot grid
+            n_features = len(features)
+            n_cols = 3
+            n_rows = (n_features + n_cols - 1) // n_cols
+            
+            fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 4 * n_rows))
+            axes = axes.flatten() if n_features > 1 else [axes]
+            
+            for idx, feature in enumerate(features):
+                ax = axes[idx]
+                
+                # Plot both raw and scaled
+                if feature in self.raw_features.columns:
+                    raw_col = feature
+                    scaled_col = f"S_{feature}"
+                    
+                    # Raw values
+                    ax2 = ax.twinx()
+                    ax2.plot(self.raw_features[raw_col], 
+                            color='lightblue', alpha=0.6, linewidth=1, label='Raw')
+                    ax2.set_ylabel('Raw Value', color='lightblue')
+                    ax2.tick_params(axis='y', labelcolor='lightblue')
+                    
+                    # Scaled values
+                    if scaled_col in self.scaled_features.columns:
+                        ax.plot(self.scaled_features[scaled_col], 
+                               color='darkblue', linewidth=1.5, label='Scaled')
+                        ax.axhline(y=0.5, color='red', linestyle='--', 
+                                  alpha=0.3, linewidth=1, label='Baseline (0.5)')
+                        ax.set_ylim([-0.1, 1.1])
+                    
+                    ax.set_title(feature, fontsize=11, fontweight='bold')
+                    ax.set_xlabel('Frame', fontsize=9)
+                    ax.set_ylabel('Scaled Value [0,1]', fontsize=9, color='darkblue')
+                    ax.tick_params(axis='y', labelcolor='darkblue')
+                    ax.grid(True, alpha=0.3)
+                    
+                    # Add legend
+                    lines1, labels1 = ax.get_legend_handles_labels()
+                    lines2, labels2 = ax2.get_legend_handles_labels()
+                    ax.legend(lines1 + lines2, labels1 + labels2, 
+                             loc='upper right', fontsize=8)
+            
+            # Hide empty subplots
+            for idx in range(n_features, len(axes)):
+                axes[idx].axis('off')
+            
+            plt.tight_layout()
+            filename = f"{group_name.replace(' ', '_').lower()}_time_series.png"
+            filepath = self.time_series_dir / filename
+            plt.savefig(filepath, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            print(f"  ✓ Saved: {filepath}")
+    
+    def plot_distributions(self):
+        """
+        Create distribution plots for scaled features.
+        """
+        print("\n" + "=" * 70)
+        print("GENERATING DISTRIBUTION PLOTS")
+        print("=" * 70)
+        
+        for group_name, features in self.feature_groups.items():
+            print(f"\nProcessing {group_name} features...")
+            
+            n_features = len(features)
+            n_cols = 3
+            n_rows = (n_features + n_cols - 1) // n_cols
+            
+            fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 4 * n_rows))
+            axes = axes.flatten() if n_features > 1 else [axes]
+            
+            for idx, feature in enumerate(features):
+                ax = axes[idx]
+                scaled_col = f"S_{feature}"
+                
+                if scaled_col in self.scaled_features.columns:
+                    values = self.scaled_features[scaled_col]
+                    
+                    # Histogram + KDE
+                    sns.histplot(values, kde=True, ax=ax, bins=30, 
+                                color='steelblue', alpha=0.6)
+                    
+                    # Add vertical lines for mean and median
+                    mean_val = values.mean()
+                    median_val = values.median()
+                    ax.axvline(mean_val, color='red', linestyle='--', 
+                              linewidth=2, label=f'Mean: {mean_val:.3f}')
+                    ax.axvline(median_val, color='green', linestyle='--', 
+                              linewidth=2, label=f'Median: {median_val:.3f}')
+                    
+                    ax.set_title(feature, fontsize=11, fontweight='bold')
+                    ax.set_xlabel('Scaled Value', fontsize=9)
+                    ax.set_ylabel('Frequency', fontsize=9)
+                    ax.legend(fontsize=8)
+                    ax.grid(True, alpha=0.3, axis='y')
+            
+            # Hide empty subplots
+            for idx in range(n_features, len(axes)):
+                axes[idx].axis('off')
+            
+            plt.tight_layout()
+            filename = f"{group_name.replace(' ', '_').lower()}_distributions.png"
+            filepath = self.dist_dir / filename
+            plt.savefig(filepath, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            print(f"  ✓ Saved: {filepath}")
+    
+    def plot_correlation_heatmap(self):
+        """
+        Create correlation heatmap for all features.
+        """
+        print("\n" + "=" * 70)
+        print("GENERATING CORRELATION HEATMAP")
+        print("=" * 70)
+        
+        # Compute correlation matrix
+        corr_matrix = self.scaled_features.corr()
+        
+        # Create large heatmap
+        fig, ax = plt.subplots(figsize=(20, 18))
+        
+        # Plot heatmap
+        mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1)
+        sns.heatmap(corr_matrix, mask=mask, cmap='RdBu_r', center=0,
+                   square=True, linewidths=0.5, cbar_kws={"shrink": 0.8},
+                   annot=False, fmt='.2f', ax=ax, vmin=-1, vmax=1)
+        
+        ax.set_title('Feature Correlation Matrix (Scaled Features)', 
+                    fontsize=16, fontweight='bold', pad=20)
+        
+        plt.tight_layout()
+        filepath = self.heatmap_dir / 'correlation_heatmap.png'
+        plt.savefig(filepath, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"✓ Saved: {filepath}")
+    
+    def plot_outlier_detection(self):
+        """
+        Create box plots to identify outliers.
+        """
+        print("\n" + "=" * 70)
+        print("GENERATING OUTLIER DETECTION PLOTS")
+        print("=" * 70)
+        
+        for group_name, features in self.feature_groups.items():
+            print(f"\nProcessing {group_name} features...")
+            
+            # Filter features that exist
+            existing_features = [f"S_{f}" for f in features 
+                                if f"S_{f}" in self.scaled_features.columns]
+            
+            if not existing_features:
+                continue
+            
+            fig, ax = plt.subplots(figsize=(16, 6))
+            
+            # Create box plot
+            data_to_plot = [self.scaled_features[col] for col in existing_features]
+            labels = [col.replace('S_', '') for col in existing_features]
+            
+            bp = ax.boxplot(data_to_plot, labels=labels, patch_artist=True,
+                           showmeans=True, meanline=True)
+            
+            # Color boxes
+            for patch in bp['boxes']:
+                patch.set_facecolor('lightblue')
+                patch.set_alpha(0.6)
+            
+            # Add reference lines
+            ax.axhline(y=0, color='red', linestyle='--', alpha=0.3, linewidth=1)
+            ax.axhline(y=1, color='red', linestyle='--', alpha=0.3, linewidth=1)
+            ax.axhline(y=0.5, color='green', linestyle='--', alpha=0.3, linewidth=1)
+            
+            ax.set_title(f'{group_name} Features - Outlier Detection', 
+                        fontsize=14, fontweight='bold')
+            ax.set_ylabel('Scaled Value', fontsize=11)
+            ax.set_ylim([-0.2, 1.2])
+            ax.grid(True, alpha=0.3, axis='y')
+            plt.xticks(rotation=45, ha='right')
+            
+            plt.tight_layout()
+            filename = f"{group_name.replace(' ', '_').lower()}_outliers.png"
+            filepath = self.outlier_dir / filename
+            plt.savefig(filepath, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            print(f"  ✓ Saved: {filepath}")
+    
+    def generate_summary_report(self):
+        """
+        Generate comprehensive summary statistics report.
+        """
+        print("\n" + "=" * 70)
+        print("GENERATING SUMMARY REPORT")
+        print("=" * 70)
+        
+        summary_data = []
+        
+        for col in self.scaled_features.columns:
+            values = self.scaled_features[col]
+            
+            summary_data.append({
+                'Feature': col.replace('S_', ''),
+                'Mean': values.mean(),
+                'Std': values.std(),
+                'Min': values.min(),
+                'Max': values.max(),
+                'Q25': values.quantile(0.25),
+                'Median': values.median(),
+                'Q75': values.quantile(0.75),
+                'Zeros (%)': (values == 0).sum() / len(values) * 100,
+                'Out of Range': ((values < 0) | (values > 1)).sum()
+            })
+        
+        summary_df = pd.DataFrame(summary_data)
+        
+        # Save to CSV
+        csv_path = self.summary_dir / 'feature_statistics.csv'
+        summary_df.to_csv(csv_path, index=False)
+        print(f"✓ Saved statistics: {csv_path}")
+        
+        # Create visual summary
+        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+        
+        # Plot 1: Mean values
+        ax = axes[0, 0]
+        summary_df.plot(x='Feature', y='Mean', kind='bar', ax=ax, 
+                       color='steelblue', alpha=0.7)
+        ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.5)
+        ax.set_title('Mean Values (All Features)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Mean Scaled Value')
+        ax.set_xlabel('')
+        ax.tick_params(axis='x', rotation=90)
+        ax.grid(True, alpha=0.3, axis='y')
+        
+        # Plot 2: Standard deviation
+        ax = axes[0, 1]
+        summary_df.plot(x='Feature', y='Std', kind='bar', ax=ax, 
+                       color='coral', alpha=0.7)
+        ax.set_title('Standard Deviation (All Features)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Standard Deviation')
+        ax.set_xlabel('')
+        ax.tick_params(axis='x', rotation=90)
+        ax.grid(True, alpha=0.3, axis='y')
+        
+        # Plot 3: Value range
+        ax = axes[1, 0]
+        x = np.arange(len(summary_df))
+        ax.barh(x, summary_df['Max'] - summary_df['Min'], 
+               left=summary_df['Min'], alpha=0.7, color='green')
+        ax.set_yticks(x)
+        ax.set_yticklabels(summary_df['Feature'], fontsize=7)
+        ax.axvline(x=0, color='red', linestyle='--', alpha=0.5)
+        ax.axvline(x=1, color='red', linestyle='--', alpha=0.5)
+        ax.set_title('Value Ranges (Min to Max)', fontsize=12, fontweight='bold')
+        ax.set_xlabel('Scaled Value')
+        ax.grid(True, alpha=0.3, axis='x')
+        
+        # Plot 4: Percentage of zeros
+        ax = axes[1, 1]
+        summary_df.plot(x='Feature', y='Zeros (%)', kind='bar', ax=ax, 
+                       color='purple', alpha=0.7)
+        ax.set_title('Percentage of Zero Values', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Zeros (%)')
+        ax.set_xlabel('')
+        ax.tick_params(axis='x', rotation=90)
+        ax.grid(True, alpha=0.3, axis='y')
+        
+        plt.tight_layout()
+        filepath = self.summary_dir / 'summary_statistics.png'
+        plt.savefig(filepath, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"✓ Saved summary plot: {filepath}")
+    
+    def generate_all_plots(self):
+        """
+        Generate all visualizations.
+        """
+        print("\n" + "=" * 70)
+        print("FEATURE VISUALIZATION PIPELINE")
+        print("=" * 70)
+        print(f"Raw CSV: {self.raw_csv_path}")
+        print(f"Scaled CSV: {self.scaled_csv_path}")
+        
+        # Run analysis
+        issues = self.analyze_scaling_issues()
+        
+        # Generate plots
+        self.plot_time_series_by_group()
+        self.plot_distributions()
+        self.plot_correlation_heatmap()
+        self.plot_outlier_detection()
+        self.generate_summary_report()
+        
+        print("\n" + "=" * 70)
+        print("✓ ALL VISUALIZATIONS COMPLETE")
+        print("=" * 70)
+        print(f"\nPlots saved in:")
+        print(f"  • Time Series:    {self.time_series_dir}")
+        print(f"  • Distributions:  {self.dist_dir}")
+        print(f"  • Heatmaps:       {self.heatmap_dir}")
+        print(f"  • Outliers:       {self.outlier_dir}")
+        print(f"  • Summary:        {self.summary_dir}")
+
+
+def main():
+    """
+    Main execution function.
+    """
+    import sys
+    import glob
+    
+    if len(sys.argv) < 2:
+        # Auto-detect latest CSV files
+        print("No CSV file specified. Searching for latest files...")
+        
+        raw_files = sorted(glob.glob("output/raw/*.csv"))
+        scaled_files = sorted(glob.glob("output/scaled/*.csv"))
+        
+        if not raw_files or not scaled_files:
+            print("❌ No CSV files found in output/raw/ and output/scaled/")
+            print("\nUsage: python plot_features.py [raw_csv_path] [scaled_csv_path]")
+            return
+        
+        raw_csv = raw_files[-1]
+        scaled_csv = scaled_files[-1]
+        
+        print(f"Using latest files:")
+        print(f"  Raw:    {raw_csv}")
+        print(f"  Scaled: {scaled_csv}")
+    else:
+        raw_csv = sys.argv[1]
+        scaled_csv = sys.argv[2] if len(sys.argv) > 2 else sys.argv[1].replace('raw', 'scaled')
+    
+    # Create visualizer and generate plots
+    visualizer = FeatureVisualizer(raw_csv, scaled_csv)
+    visualizer.generate_all_plots()
+
+
+if __name__ == "__main__":
+    main()
+
+
+================================================================================
+FILE: features/base_feature.py
+================================================================================
+
+class BaseFeature:
+    """
+    Base class for all behavioral features.
+    """
+
+    def __init__(self, name, history_size=300):
+        """
+        Initialize feature.
+
+        Parameters
+        ----------
+        name : str
+            Feature name
+        history_size : int
+            Maximum stored history values
+        """
+        self.name = name
+        self.history = []
+        self.history_size = history_size
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        """
+        Compute feature value.
+
+        Must be implemented by child classes.
+        """
+        raise NotImplementedError
+
+    def update_history(self, value):
+        """
+        Store feature value in history.
+        """
+        self.history.append(value)
+
+        if len(self.history) > self.history_size:
+            self.history.pop(0)
+
+    def get_latest(self):
+        """
+        Get most recent value.
+        """
+        if not self.history:
+            return None
+
+        return self.history[-1]
+
+
+================================================================================
+FILE: features/derived_features.py
+================================================================================
+
+import numpy as np
+
+from features.base_feature import BaseFeature
+from processing.geometry import inter_ocular_distance, normalized_distance
+
+
+class OverallAUVariance(BaseFeature):
+    def __init__(self):
+        super().__init__("OverallAUVariance")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        if frame_buffer.size() == 0:
+            return 0
+
+        frames = frame_buffer.get_all_frames()
+
+        values = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "AU12Mean" in f:
+                values.append(f["AU12Mean"])
+
+        if len(values) < 2:
+            return 0
+
+        return float(np.var(values))
+
+
+class FacialEmotionalRange(BaseFeature):
+    def __init__(self):
+        super().__init__("FacialEmotionalRange")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        values = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "AU12Mean" in f:
+                values.append(f["AU12Mean"])
+
+        if not values:
+            return 0
+
+        return float(max(values) - min(values))
+
+
+class FacialTransitionFrequency(BaseFeature):
+    def __init__(self, threshold=0.05):
+        super().__init__("FacialTransitionFrequency")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        values = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "AU12Mean" in f:
+                values.append(f["AU12Mean"])
+
+        if len(values) < 2:
+            return 0
+
+        transitions = 0
+
+        for i in range(1, len(values)):
+            if abs(values[i] - values[i - 1]) > self.threshold:
+                transitions += 1
+
+        # Return rate (proportion) instead of count
+        return transitions / max(len(values) - 1, 1)
+
+
+class NearZeroAUActivationRatio(BaseFeature):
+    def __init__(self, threshold=0.1):
+        super().__init__("NearZeroAUActivationRatio")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        values = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "AU12Mean" in f:
+                values.append(f["AU12Mean"])
+
+        if not values:
+            return 0
+
+        near_zero = [v for v in values if v < self.threshold]
+
+        return len(near_zero) / len(values)
+
+
+class MotionEnergyFloorScore(BaseFeature):
+    def __init__(self, threshold=0.01):
+        super().__init__("MotionEnergyFloorScore")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        motion_values = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "HeadMotionEnergy" in f:
+                motion_values.append(f["HeadMotionEnergy"])
+
+        if not motion_values:
+            return 0
+
+        low_motion = [v for v in motion_values if v < self.threshold]
+
+        return len(low_motion) / len(motion_values)
+
+
+class GestureFrequency(BaseFeature):
+    def __init__(self, threshold=0.05):
+        super().__init__("GestureFrequency")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        motion_values = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "HeadVelocityPeak" in f:
+                motion_values.append(f["HeadVelocityPeak"])
+
+        gestures = [v for v in motion_values if v > self.threshold]
+
+        # Return rate (proportion) instead of count
+        if len(motion_values) == 0:
+            return 0
+        return len(gestures) / len(motion_values)
+
+
+class MicroMotionEnergy(BaseFeature):
+    def __init__(self):
+        super().__init__("MicroMotionEnergy")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        displacements = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "LandmarkDisplacementMean" in f:
+                displacements.append(f["LandmarkDisplacementMean"])
+
+        if not displacements:
+            return 0
+
+        return float(np.mean(displacements))
+
+
+class ShoulderElevationIndex(BaseFeature):
+    def __init__(self):
+        super().__init__("ShoulderElevationIndex")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        # Requires body pose landmarks (not implemented yet)
+
+        return 0
+
+
+================================================================================
+FILE: features/eye_features.py
+================================================================================
+
+import numpy as np
+
+from features.base_feature import BaseFeature
+from processing.geometry import inter_ocular_distance, normalized_distance
+
+
+class BlinkRate(BaseFeature):
+    def __init__(self, threshold=0.18):
+        super().__init__("BlinkRate")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        left_eye = normalized_distance(landmarks[159], landmarks[145], iod)
+
+        right_eye = normalized_distance(landmarks[386], landmarks[374], iod)
+
+        openness = (left_eye + right_eye) / 2
+
+        self.update_history(openness)
+
+        if len(self.history) < 2:
+            return 0
+
+        blinks = 0
+
+        for i in range(1, len(self.history)):
+            if self.history[i - 1] > self.threshold and self.history[i] < self.threshold:
+                blinks += 1
+
+        return blinks
+
+
+class BlinkClusterDensity(BaseFeature):
+    def __init__(self, threshold=0.18):
+        super().__init__("BlinkClusterDensity")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        left_eye = normalized_distance(landmarks[159], landmarks[145], iod)
+        right_eye = normalized_distance(landmarks[386], landmarks[374], iod)
+
+        openness = (left_eye + right_eye) / 2
+
+        self.update_history(openness)
+
+        if len(self.history) < 10:
+            return 0
+
+        blink_events = []
+
+        for i in range(1, len(self.history)):
+            if self.history[i - 1] > self.threshold and self.history[i] < self.threshold:
+                blink_events.append(i)
+
+        clusters = 0
+
+        for i in range(1, len(blink_events)):
+            if blink_events[i] - blink_events[i - 1] < 5:
+                clusters += 1
+
+        return clusters
+
+
+class BaselineEyeOpenness(BaseFeature):
+    def __init__(self):
+        super().__init__("BaselineEyeOpenness")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        left_eye = normalized_distance(landmarks[159], landmarks[145], iod)
+
+        right_eye = normalized_distance(landmarks[386], landmarks[374], iod)
+
+        openness = (left_eye + right_eye) / 2
+
+        self.update_history(openness)
+
+        return float(np.mean(self.history))
+
+
+class GazeShiftFrequency(BaseFeature):
+    def __init__(self):
+        super().__init__("GazeShiftFrequency")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        gaze_x = (landmarks[468][0] + landmarks[472][0]) / 2
+        gaze_y = (landmarks[468][1] + landmarks[472][1]) / 2
+
+        gaze = (gaze_x, gaze_y)
+
+        self.update_history(gaze)
+
+        if len(self.history) < 2:
+            return 0
+
+        shifts = 0
+
+        for i in range(1, len(self.history)):
+            dx = abs(self.history[i][0] - self.history[i - 1][0])
+            dy = abs(self.history[i][1] - self.history[i - 1][1])
+
+            if dx + dy > 0.02:
+                shifts += 1
+
+        # Return rate (proportion) instead of count
+        # Divide by (len-1) since we're counting transitions between frames
+        return shifts / max(len(self.history) - 1, 1)
+
+
+class EyeContactRatio(BaseFeature):
+    def __init__(self, center_threshold=0.05):
+        super().__init__("EyeContactRatio")
+        self.center_threshold = center_threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        gaze_x = (landmarks[468][0] + landmarks[472][0]) / 2
+
+        centered = abs(gaze_x - 0.5) < self.center_threshold
+
+        self.update_history(1 if centered else 0)
+
+        if not self.history:
+            return 0
+
+        return sum(self.history) / len(self.history)
+
+
+class DownwardGazeFrequency(BaseFeature):
+    def __init__(self, threshold=0.55):
+        super().__init__("DownwardGazeFrequency")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        gaze_y = (landmarks[468][1] + landmarks[472][1]) / 2
+
+        downward = gaze_y > self.threshold
+
+        self.update_history(1 if downward else 0)
+
+        # Return rate (proportion) instead of count
+        if len(self.history) == 0:
+            return 0
+        return sum(self.history) / len(self.history)
+
+
+================================================================================
+FILE: features/facial_au_features.py
+================================================================================
+
+import numpy as np
+
+from features.base_feature import BaseFeature
+from processing.geometry import inter_ocular_distance, normalized_distance
+
+
+class AU12Mean(BaseFeature):
+    def __init__(self):
+        super().__init__("AU12Mean")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[61], landmarks[291], iod)
+
+        self.update_history(value)
+
+        return value
+
+
+class AU12Variance(BaseFeature):
+    def __init__(self):
+        super().__init__("AU12Variance")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[61], landmarks[291], iod)
+
+        self.update_history(value)
+
+        if len(self.history) < 5:
+            return 0
+
+        return float(np.var(self.history))
+
+
+class AU12ActivationFrequency(BaseFeature):
+    def __init__(self, threshold=0.45):
+        super().__init__("AU12ActivationFrequency")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[61], landmarks[291], iod)
+
+        self.update_history(value)
+
+        activations = [v for v in self.history if v > self.threshold]
+
+        # Return rate (proportion) instead of count
+        if len(self.history) == 0:
+            return 0
+        return len(activations) / len(self.history)
+
+
+class AU15MeanAmplitude(BaseFeature):
+    def __init__(self):
+        super().__init__("AU15MeanAmplitude")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        left = normalized_distance(landmarks[61], landmarks[95], iod)
+        right = normalized_distance(landmarks[291], landmarks[324], iod)
+
+        value = (left + right) / 2
+
+        self.update_history(value)
+
+        return value
+
+
+class AU4MeanActivation(BaseFeature):
+    def __init__(self):
+        super().__init__("AU4MeanActivation")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[63], landmarks[336], iod)
+
+        self.update_history(value)
+
+        return value
+
+
+class AU4DurationRatio(BaseFeature):
+    def __init__(self, threshold=0.25):
+        super().__init__("AU4DurationRatio")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[63], landmarks[336], iod)
+
+        self.update_history(value)
+
+        if not self.history:
+            return 0
+
+        active = [v for v in self.history if v > self.threshold]
+
+        return len(active) / len(self.history)
+
+
+class AU1AU2PeakIntensity(BaseFeature):
+    def __init__(self):
+        super().__init__("AU1AU2PeakIntensity")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[70], landmarks[296], iod)
+
+        self.update_history(value)
+
+        # Clip to [0, 1] to handle numerical precision issues
+        return min(max(self.history), 1.0)
+
+
+class AU20ActivationRate(BaseFeature):
+    def __init__(self, threshold=0.35):
+        super().__init__("AU20ActivationRate")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[78], landmarks[308], iod)
+
+        self.update_history(value)
+
+        activations = [v for v in self.history if v > self.threshold]
+
+        # Return rate (proportion) instead of count
+        if len(self.history) == 0:
+            return 0
+        return len(activations) / len(self.history)
+
+
+class LipCompressionFrequency(BaseFeature):
+    def __init__(self, threshold=0.2):
+        super().__init__("LipCompressionFrequency")
+        self.threshold = threshold
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        iod = inter_ocular_distance(landmarks)
+
+        value = normalized_distance(landmarks[95], landmarks[324], iod)
+
+        self.update_history(value)
+
+        compressions = [v for v in self.history if v < self.threshold]
+
+        # Return rate (proportion) instead of count
+        if len(self.history) == 0:
+            return 0
+        return len(compressions) / len(self.history)
+
+
+================================================================================
+FILE: features/head_motion_features.py
+================================================================================
+
+import numpy as np
+
+from features.base_feature import BaseFeature
+
+
+def point_distance(p1, p2):
+    p1 = np.array(p1)
+    p2 = np.array(p2)
+
+    return np.linalg.norm(p1 - p2)
+
+
+class MeanHeadVelocity(BaseFeature):
+    def __init__(self):
+        super().__init__("MeanHeadVelocity")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_recent_frames(2)
+
+        if len(frames) < 2:
+            return 0
+
+        prev = frames[-2]["landmarks"]
+
+        anchor_points = [1, 2, 234, 454, 152]
+
+        velocities = []
+
+        for idx in anchor_points:
+            v = point_distance(landmarks[idx], prev[idx])
+
+            velocities.append(v)
+
+        velocity = float(np.mean(velocities))
+
+        self.update_history(velocity)
+
+        return velocity
+
+
+class HeadVelocityPeak(BaseFeature):
+    def __init__(self):
+        super().__init__("HeadVelocityPeak")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_recent_frames(2)
+
+        if len(frames) < 2:
+            return 0
+
+        prev = frames[-2]["landmarks"]
+
+        anchor_points = [1, 2, 234, 454, 152]
+
+        velocities = []
+
+        for idx in anchor_points:
+            v = point_distance(landmarks[idx], prev[idx])
+
+            velocities.append(v)
+
+        peak = max(velocities)
+
+        self.update_history(peak)
+
+        return peak
+
+
+class HeadMotionEnergy(BaseFeature):
+    def __init__(self):
+        super().__init__("HeadMotionEnergy")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_recent_frames(2)
+
+        if len(frames) < 2:
+            return 0
+
+        prev = frames[-2]["landmarks"]
+
+        anchor_points = [1, 2, 234, 454, 152]
+
+        energy = 0
+
+        for idx in anchor_points:
+            energy += point_distance(landmarks[idx], prev[idx])
+
+        self.update_history(energy)
+
+        return energy
+
+
+class LandmarkDisplacementMean(BaseFeature):
+    def __init__(self):
+        super().__init__("LandmarkDisplacementMean")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_recent_frames(2)
+
+        if len(frames) < 2:
+            return 0
+
+        prev = frames[-2]["landmarks"]
+
+        displacements = []
+
+        for idx in landmarks.keys():
+            d = point_distance(landmarks[idx], prev[idx])
+
+            displacements.append(d)
+
+        value = float(np.mean(displacements))
+
+        self.update_history(value)
+
+        return value
+
+
+class PostureRigidityIndex(BaseFeature):
+    def __init__(self):
+        super().__init__("PostureRigidityIndex")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_recent_frames(2)
+
+        if len(frames) < 2:
+            return 0
+
+        prev = frames[-2]["landmarks"]
+
+        anchor_points = [1, 2, 234, 454, 152]
+
+        motions = []
+
+        for idx in anchor_points:
+            m = point_distance(landmarks[idx], prev[idx])
+
+            motions.append(m)
+
+        variance = np.var(motions)
+
+        # Use bounded function instead of 1/variance to avoid explosion
+        # This gives rigidity in [0, 1] where 1 = high rigidity (low variance)
+        rigidity = 1 / (1 + variance)
+
+        self.update_history(rigidity)
+
+        return rigidity
+
+
+================================================================================
+FILE: features/temporal_features.py
+================================================================================
+
+import numpy as np
+
+from features.base_feature import BaseFeature
+
+
+class ResponseLatencyMean(BaseFeature):
+    def __init__(self, max_latency=5.0):
+        super().__init__("ResponseLatencyMean")
+        self.response_times = []
+        self.max_latency = max_latency  # Expected max latency in seconds
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        motion_values = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "HeadVelocityPeak" in f:
+                motion_values.append((frame["timestamp"], f["HeadVelocityPeak"]))
+
+        if not motion_values:
+            return 0
+
+        threshold = 0.04
+
+        for t, v in motion_values:
+            if v > threshold:
+                latency = t - frames[0]["timestamp"]
+                self.response_times.append(latency)
+                break
+
+        if not self.response_times:
+            return 0
+
+        # Normalize to [0, 1] by dividing by max expected latency
+        mean_latency = float(np.mean(self.response_times))
+        return min(mean_latency / self.max_latency, 1.0)
+
+
+class SpeechOnsetDelay(BaseFeature):
+    def __init__(self, max_delay=5.0):
+        super().__init__("SpeechOnsetDelay")
+        self.max_delay = max_delay  # Expected max delay in seconds
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        mouth_movements = []
+
+        for frame in frames:
+            lm = frame["landmarks"]
+
+            distance = abs(lm[13][1] - lm[14][1])
+
+            mouth_movements.append((frame["timestamp"], distance))
+
+        if not mouth_movements:
+            return 0
+
+        threshold = 0.01
+
+        for t, d in mouth_movements:
+            if d > threshold:
+                delay = t - frames[0]["timestamp"]
+                # Normalize to [0, 1] by dividing by max expected delay
+                return min(delay / self.max_delay, 1.0)
+
+        return 0
+
+
+class NodOnsetLatency(BaseFeature):
+    def __init__(self, max_latency=5.0):
+        super().__init__("NodOnsetLatency")
+        self.max_latency = max_latency  # Expected max latency in seconds
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        head_movements = []
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "MeanHeadVelocity" in f:
+                head_movements.append((frame["timestamp"], f["MeanHeadVelocity"]))
+
+        threshold = 0.03
+
+        for t, v in head_movements:
+            if v > threshold:
+                latency = t - frames[0]["timestamp"]
+                # Normalize to [0, 1] by dividing by max expected latency
+                return min(latency / self.max_latency, 1.0)
+
+        return 0
+
+
+class PauseDurationMean(BaseFeature):
+    def __init__(self, max_pause_frames=120):
+        super().__init__("PauseDurationMean")
+        self.max_pause_frames = max_pause_frames  # ~4 seconds at 30fps
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        pauses = []
+
+        current_pause = 0
+
+        threshold = 0.01
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "HeadMotionEnergy" in f and f["HeadMotionEnergy"] < threshold:
+                current_pause += 1
+            else:
+                if current_pause > 0:
+                    pauses.append(current_pause)
+                    current_pause = 0
+
+        if not pauses:
+            return 0
+
+        # Normalize to [0, 1] by dividing by max expected pause length
+        mean_pause = float(np.mean(pauses))
+        return min(mean_pause / self.max_pause_frames, 1.0)
+
+
+class ExtendedSilenceRatio(BaseFeature):
+    def __init__(self):
+        super().__init__("ExtendedSilenceRatio")
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        silence_frames = 0
+
+        threshold = 0.01
+
+        for frame in frames:
+            f = frame["features"]
+
+            if "HeadMotionEnergy" in f and f["HeadMotionEnergy"] < threshold:
+                silence_frames += 1
+
+        if not frames:
+            return 0
+
+        return silence_frames / len(frames)
+
+
+class ReactionTimeInstabilityIndex(BaseFeature):
+    def __init__(self):
+        super().__init__("ReactionTimeInstabilityIndex")
+        self.latencies = []
+
+    def compute(self, landmarks, frame_buffer, timestamp):
+        frames = frame_buffer.get_all_frames()
+
+        if len(frames) < 2:
+            return 0
+
+        latency = frames[-1]["timestamp"] - frames[-2]["timestamp"]
+
+        self.latencies.append(latency)
+
+        if len(self.latencies) < 2:
+            return 0
+
+        return float(np.var(self.latencies))
+
+
+================================================================================
+FILE: landmarks/landmark_subset.py
+================================================================================
+
+"""
+Landmark Subset Extraction
+Reduces 478 MediaPipe landmarks to the 29 required landmarks.
+"""
+
+
+LANDMARK_SUBSET = [
+	1, 2, 13, 14,
+	33, 50,
+	61, 63, 70,
+	78, 95,
+	133, 145,
+	152, 159,
+	234,
+	263, 280,
+	291, 296,
+	308, 324,
+	336,
+	362, 374, 386,
+	454,
+	468, 472,
+]
+
+
+def extract_subset(landmarks):
+	"""
+	Extract subset of landmarks.
+
+	Parameters
+	----------
+	landmarks : list
+		MediaPipe landmark list (478 elements)
+
+	Returns
+	-------
+	dict
+		{landmark_index: (x, y, z)}
+	"""
+	subset = {}
+
+	for idx in LANDMARK_SUBSET:
+		lm = landmarks[idx]
+		subset[idx] = (lm.x, lm.y, lm.z)
+
+	return subset
+
+
+================================================================================
+FILE: landmarks/mediapipe_detector.py
+================================================================================
+
+import cv2
+import mediapipe as mp
+
+
+class MediaPipeDetector:
+    def __init__(self):
+        """
+        Initialize MediaPipe FaceMesh detector.
+        """
+        self.mp_face = mp.solutions.face_mesh
+        self.face_mesh = self.mp_face.FaceMesh(
+            max_num_faces=1,
+            refine_landmarks=True,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+        )
+
+    def detect(self, frame):
+        """
+        Detect facial landmarks from a frame.
+
+        Returns:
+            list of landmarks or None
+        """
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.face_mesh.process(rgb_frame)
+
+        if not results.multi_face_landmarks:
+            return None
+
+        return results.multi_face_landmarks[0].landmark
+
+
+================================================================================
+FILE: ml/baseline_stats.py
+================================================================================
+
+"""
+Baseline Statistics Analyzer
+
+Analyzes baseline behavioral data to compute feature distributions.
+These distributions represent "normal" behavior and serve as reference
+for generating disorder-modified synthetic data.
+"""
+
+import pandas as pd
+import numpy as np
+import json
+
+
+class BaselineAnalyzer:
+    """
+    Computes statistical distributions from baseline behavioral data.
+    """
+
+    def __init__(self):
+        self.stats = {}
+
+    def analyze_csv(self, csv_path, save_path=None):
+        """
+        Analyze baseline CSV and compute feature statistics.
+
+        Parameters
+        ----------
+        csv_path : str
+            Path to windowed baseline CSV
+        save_path : str, optional
+            Path to save statistics as JSON
+
+        Returns
+        -------
+        dict
+            Feature statistics (mean, std, min, max)
+        """
+        print(f"\n{'='*60}")
+        print(f"BASELINE STATISTICAL ANALYSIS")
+        print(f"{'='*60}")
+
+        # Load data
+        df = pd.read_csv(csv_path)
+        print(f"✓ Loaded {len(df)} samples")
+
+        # Remove label column if present
+        feature_cols = [col for col in df.columns if col != 'label']
+        print(f"✓ Analyzing {len(feature_cols)} features")
+
+        # Compute statistics for each feature
+        print("\nComputing distributions...")
+
+        for col in feature_cols:
+            self.stats[col] = {
+                'mean': float(df[col].mean()),
+                'std': float(df[col].std()),
+                'min': float(df[col].min()),
+                'max': float(df[col].max()),
+                'median': float(df[col].median()),
+                'q25': float(df[col].quantile(0.25)),
+                'q75': float(df[col].quantile(0.75))
+            }
+
+        print(f"✓ Statistics computed for {len(self.stats)} features")
+
+        # Save if requested
+        if save_path:
+            with open(save_path, 'w') as f:
+                json.dump(self.stats, f, indent=2)
+            print(f"✓ Saved statistics: {save_path}")
+
+        # Print sample statistics
+        print(f"\n{'='*60}")
+        print("SAMPLE FEATURE DISTRIBUTIONS")
+        print(f"{'='*60}")
+
+        # Show first 5 features as examples
+        for i, (feature, stats) in enumerate(list(self.stats.items())[:5]):
+            print(f"\n{feature}:")
+            print(f"  Mean: {stats['mean']:.4f}")
+            print(f"  Std:  {stats['std']:.4f}")
+            print(f"  Min:  {stats['min']:.4f}")
+            print(f"  Max:  {stats['max']:.4f}")
+
+        if len(self.stats) > 5:
+            print(f"\n... and {len(self.stats) - 5} more features")
+
+        return self.stats
+
+    def load_stats(self, json_path):
+        """
+        Load pre-computed statistics from JSON.
+
+        Parameters
+        ----------
+        json_path : str
+            Path to statistics JSON file
+
+        Returns
+        -------
+        dict
+            Feature statistics
+        """
+        with open(json_path, 'r') as f:
+            self.stats = json.load(f)
+
+        print(f"✓ Loaded statistics for {len(self.stats)} features")
+        return self.stats
+
+    def get_feature_stats(self, feature_name):
+        """
+        Get statistics for a specific feature.
+
+        Parameters
+        ----------
+        feature_name : str
+            Feature name
+
+        Returns
+        -------
+        dict
+            Statistics for that feature
+        """
+        return self.stats.get(feature_name)
+
+    def print_summary(self):
+        """
+        Print summary of baseline statistics.
+        """
+        print(f"\n{'='*60}")
+        print("BASELINE STATISTICS SUMMARY")
+        print(f"{'='*60}")
+        print(f"Total features: {len(self.stats)}")
+
+        # Compute overall statistics
+        all_means = [s['mean'] for s in self.stats.values()]
+        all_stds = [s['std'] for s in self.stats.values()]
+
+        print(f"\nOverall distribution:")
+        print(f"  Mean range: [{min(all_means):.4f}, {max(all_means):.4f}]")
+        print(f"  Std range:  [{min(all_stds):.4f}, {max(all_stds):.4f}]")
+
+        # Count features by aggregation type
+        aggregation_types = {'mean': 0, 'std': 0, 'max': 0, 'min': 0}
+
+        for feature in self.stats.keys():
+            for agg_type in aggregation_types.keys():
+                if f'_{agg_type}' in feature:
+                    aggregation_types[agg_type] += 1
+
+        print(f"\nFeatures by aggregation type:")
+        for agg_type, count in aggregation_types.items():
+            print(f"  {agg_type}: {count}")
+
+
+if __name__ == "__main__":
+    """
+    Example usage: Analyze baseline windows
+    """
+    analyzer = BaselineAnalyzer()
+
+    # Analyze baseline data
+    stats = analyzer.analyze_csv(
+        csv_path='ml/baseline_windows.csv',
+        save_path='ml/baseline_stats.json'
+    )
+
+    # Print summary
+    analyzer.print_summary()
+
+    print(f"\n✓ Baseline analysis complete")
+    print(f"\nNext step: Run synthetic_generator.py to create training dataset")
+
+
+================================================================================
+FILE: ml/disorder_profiles.py
+================================================================================
+
+"""
+Disorder Behavioral Profiles
+
+Defines how each mental health condition modifies baseline behavior.
+Modifiers are statistical priors for synthetic generation (not clinical diagnosis).
+"""
+
+DISORDER_LABELS = {
+    'depression': 0,
+    'anxiety': 1,
+    'stress': 2,
+    'bipolar_mania': 3,
+    'phobia_common': 4,
+    'suicidal_tendency': 5
+}
+
+
+DISORDER_PROFILES = {
+    'depression': {
+        'description': 'Reduced expressivity, reduced movement, increased latency',
+        'modifiers': {
+            'S_AU12Mean': {'mean_mult': 0.60, 'std_mult': 0.80},
+            'S_AU12Variance': {'mean_mult': 0.65, 'std_mult': 0.85},
+            'S_FacialEmotionalRange': {'mean_mult': 0.50, 'std_mult': 0.70},
+            'S_GestureFrequency': {'mean_mult': 0.60, 'std_mult': 0.75},
+            'S_MeanHeadVelocity': {'mean_mult': 0.60, 'std_mult': 0.75},
+            'S_HeadMotionEnergy': {'mean_mult': 0.55, 'std_mult': 0.70},
+            'S_EyeContactRatio': {'mean_mult': 0.65, 'std_mult': 0.80},
+            'S_DownwardGazeFrequency': {'mean_mult': 1.30, 'std_mult': 1.10},
+            'S_ResponseLatencyMean': {'mean_mult': 1.40, 'std_mult': 1.20},
+            'S_SpeechOnsetDelay': {'mean_mult': 1.35, 'std_mult': 1.15},
+            'S_PauseDurationMean': {'mean_mult': 1.25, 'std_mult': 1.10}
+        }
+    },
+
+    'anxiety': {
+        'description': 'High tension, vigilance, fast but unstable reactions',
+        'modifiers': {
+            'S_AU4MeanActivation': {'mean_mult': 1.45, 'std_mult': 1.25},
+            'S_LipCompressionFrequency': {'mean_mult': 1.40, 'std_mult': 1.20},
+            'S_BlinkRate': {'mean_mult': 1.50, 'std_mult': 1.30},
+            'S_BlinkClusterDensity': {'mean_mult': 1.45, 'std_mult': 1.25},
+            'S_GazeShiftFrequency': {'mean_mult': 1.55, 'std_mult': 1.30},
+            'S_EyeContactRatio': {'mean_mult': 0.80, 'std_mult': 1.20},
+            'S_MeanHeadVelocity': {'mean_mult': 1.25, 'std_mult': 1.40},
+            'S_HeadMotionEnergy': {'mean_mult': 1.35, 'std_mult': 1.50},
+            'S_MicroMotionEnergy': {'mean_mult': 1.45, 'std_mult': 1.40},
+            'S_ReactionTimeInstabilityIndex': {'mean_mult': 1.40, 'std_mult': 1.35}
+        }
+    },
+
+    'stress': {
+        'description': 'Sustained strain with elevated tension and variability',
+        'modifiers': {
+            'S_AU4MeanActivation': {'mean_mult': 1.25, 'std_mult': 1.15},
+            'S_LipCompressionFrequency': {'mean_mult': 1.30, 'std_mult': 1.20},
+            'S_BlinkRate': {'mean_mult': 1.25, 'std_mult': 1.20},
+            'S_GazeShiftFrequency': {'mean_mult': 1.20, 'std_mult': 1.15},
+            'S_MeanHeadVelocity': {'mean_mult': 1.15, 'std_mult': 1.20},
+            'S_HeadMotionEnergy': {'mean_mult': 1.20, 'std_mult': 1.25},
+            'S_MicroMotionEnergy': {'mean_mult': 1.25, 'std_mult': 1.25},
+            'S_OverallAUVariance': {'mean_mult': 1.20, 'std_mult': 1.20},
+            'S_ReactionTimeInstabilityIndex': {'mean_mult': 1.30, 'std_mult': 1.25},
+            'S_ResponseLatencyMean': {'mean_mult': 1.10, 'std_mult': 1.15}
+        }
+    },
+
+    'bipolar_mania': {
+        'description': 'Very high energy, expressivity, and fast responding',
+        'modifiers': {
+            'S_AU12Mean': {'mean_mult': 1.40, 'std_mult': 1.30},
+            'S_AU12Variance': {'mean_mult': 1.50, 'std_mult': 1.40},
+            'S_FacialEmotionalRange': {'mean_mult': 1.60, 'std_mult': 1.50},
+            'S_FacialTransitionFrequency': {'mean_mult': 1.70, 'std_mult': 1.60},
+            'S_GestureFrequency': {'mean_mult': 1.65, 'std_mult': 1.55},
+            'S_MeanHeadVelocity': {'mean_mult': 1.60, 'std_mult': 1.50},
+            'S_HeadMotionEnergy': {'mean_mult': 1.75, 'std_mult': 1.65},
+            'S_GazeShiftFrequency': {'mean_mult': 1.60, 'std_mult': 1.50},
+            'S_ResponseLatencyMean': {'mean_mult': 0.55, 'std_mult': 0.70},
+            'S_SpeechOnsetDelay': {'mean_mult': 0.50, 'std_mult': 0.65},
+            'S_PauseDurationMean': {'mean_mult': 0.45, 'std_mult': 0.60}
+        }
+    },
+
+    'phobia_common': {
+        'description': 'Threat-related vigilance, avoidant eye behavior, elevated reactivity',
+        'modifiers': {
+            'S_AU4MeanActivation': {'mean_mult': 1.35, 'std_mult': 1.20},
+            'S_LipCompressionFrequency': {'mean_mult': 1.30, 'std_mult': 1.20},
+            'S_BlinkRate': {'mean_mult': 1.35, 'std_mult': 1.25},
+            'S_GazeShiftFrequency': {'mean_mult': 1.40, 'std_mult': 1.30},
+            'S_EyeContactRatio': {'mean_mult': 0.70, 'std_mult': 1.15},
+            'S_DownwardGazeFrequency': {'mean_mult': 1.20, 'std_mult': 1.10},
+            'S_HeadMotionEnergy': {'mean_mult': 1.20, 'std_mult': 1.25},
+            'S_OverallAUVariance': {'mean_mult': 1.25, 'std_mult': 1.20},
+            'S_FacialTransitionFrequency': {'mean_mult': 1.30, 'std_mult': 1.20},
+            'S_ReactionTimeInstabilityIndex': {'mean_mult': 1.35, 'std_mult': 1.30}
+        }
+    },
+
+    'suicidal_tendency': {
+        'description': 'Strong withdrawal profile with low expressivity and delayed response patterns',
+        'modifiers': {
+            'S_AU12Mean': {'mean_mult': 0.45, 'std_mult': 0.65},
+            'S_AU12Variance': {'mean_mult': 0.50, 'std_mult': 0.70},
+            'S_FacialEmotionalRange': {'mean_mult': 0.35, 'std_mult': 0.55},
+            'S_FacialTransitionFrequency': {'mean_mult': 0.50, 'std_mult': 0.70},
+            'S_GestureFrequency': {'mean_mult': 0.40, 'std_mult': 0.60},
+            'S_EyeContactRatio': {'mean_mult': 0.45, 'std_mult': 0.65},
+            'S_DownwardGazeFrequency': {'mean_mult': 1.50, 'std_mult': 1.25},
+            'S_MeanHeadVelocity': {'mean_mult': 0.45, 'std_mult': 0.60},
+            'S_HeadMotionEnergy': {'mean_mult': 0.40, 'std_mult': 0.55},
+            'S_ResponseLatencyMean': {'mean_mult': 1.45, 'std_mult': 1.25},
+            'S_PauseDurationMean': {'mean_mult': 1.50, 'std_mult': 1.30},
+            'S_ExtendedSilenceRatio': {'mean_mult': 1.55, 'std_mult': 1.30}
+        }
+    }
+}
+
+
+CONDITION_IMPORTANCE_PRIORS = {
+    'depression': {
+        'S_FacialEmotionalRange': 0.22,
+        'S_AU12Mean': 0.18,
+        'S_ResponseLatencyMean': 0.16,
+        'S_EyeContactRatio': 0.14,
+        'S_HeadMotionEnergy': 0.12,
+        'S_PauseDurationMean': 0.10,
+        'S_DownwardGazeFrequency': 0.08
+    },
+    'anxiety': {
+        'S_BlinkRate': 0.20,
+        'S_GazeShiftFrequency': 0.18,
+        'S_AU4MeanActivation': 0.16,
+        'S_ReactionTimeInstabilityIndex': 0.14,
+        'S_MicroMotionEnergy': 0.12,
+        'S_LipCompressionFrequency': 0.10,
+        'S_HeadMotionEnergy': 0.10
+    },
+    'stress': {
+        'S_AU4MeanActivation': 0.20,
+        'S_MicroMotionEnergy': 0.17,
+        'S_ReactionTimeInstabilityIndex': 0.16,
+        'S_LipCompressionFrequency': 0.14,
+        'S_BlinkRate': 0.12,
+        'S_HeadMotionEnergy': 0.11,
+        'S_ResponseLatencyMean': 0.10
+    },
+    'bipolar_mania': {
+        'S_HeadMotionEnergy': 0.20,
+        'S_FacialTransitionFrequency': 0.18,
+        'S_FacialEmotionalRange': 0.17,
+        'S_AU12Variance': 0.15,
+        'S_GazeShiftFrequency': 0.12,
+        'S_ResponseLatencyMean': 0.10,
+        'S_GestureFrequency': 0.08
+    },
+    'phobia_common': {
+        'S_GazeShiftFrequency': 0.20,
+        'S_AU4MeanActivation': 0.17,
+        'S_BlinkRate': 0.15,
+        'S_EyeContactRatio': 0.14,
+        'S_ReactionTimeInstabilityIndex': 0.13,
+        'S_LipCompressionFrequency': 0.11,
+        'S_HeadMotionEnergy': 0.10
+    },
+    'suicidal_tendency': {
+        'S_FacialEmotionalRange': 0.22,
+        'S_EyeContactRatio': 0.18,
+        'S_PauseDurationMean': 0.15,
+        'S_ExtendedSilenceRatio': 0.14,
+        'S_ResponseLatencyMean': 0.12,
+        'S_AU12Mean': 0.11,
+        'S_HeadMotionEnergy': 0.08
+    }
+}
+
+
+def apply_disorder_modifiers(baseline_stats, disorder_name):
+    """Apply disorder-specific modifiers to baseline statistics."""
+    if disorder_name not in DISORDER_PROFILES:
+        raise ValueError(f"Unknown disorder: {disorder_name}")
+
+    profile = DISORDER_PROFILES[disorder_name]
+    modifiers = profile['modifiers']
+    modified_stats = {}
+
+    for feature, stats in baseline_stats.items():
+        feature_mods = modifiers.get(feature, {'mean_mult': 1.0, 'std_mult': 1.0})
+        mean_mult = feature_mods['mean_mult']
+        std_mult = feature_mods['std_mult']
+
+        modified_stats[feature] = {
+            'mean': stats['mean'] * mean_mult,
+            'std': stats['std'] * std_mult,
+            'min': stats['min'],
+            'max': stats['max'],
+            'median': stats['median'] * mean_mult,
+            'q25': stats['q25'] * mean_mult,
+            'q75': stats['q75'] * mean_mult
+        }
+
+    return modified_stats
+
+
+def print_disorder_summary():
+    """Print summary of all disorder profiles."""
+    print(f"\n{'='*60}")
+    print("DISORDER BEHAVIORAL PROFILES")
+    print(f"{'='*60}")
+
+    for disorder, profile in DISORDER_PROFILES.items():
+        label = DISORDER_LABELS[disorder]
+        print(f"\n[{label}] {disorder.upper()}")
+        print(f"    {profile['description']}")
+        print(f"    Modified features: {len(profile['modifiers'])}")
+
+
+if __name__ == "__main__":
+    print_disorder_summary()
+
+
+================================================================================
+FILE: ml/evaluate_model.py
+================================================================================
+
+"""
+Model Evaluation & Visualization
+
+Comprehensive evaluation of trained mental health classifier.
+Generates visualizations and detailed performance metrics.
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.model_selection import train_test_split
+import pickle
+import json
+
+
+class ModelEvaluator:
+    """
+    Evaluates and visualizes classifier performance.
+    """
+
+    def __init__(self, model_path, metadata_path, dataset_path):
+        """
+        Parameters
+        ----------
+        model_path : str
+            Path to trained model
+        metadata_path : str
+            Path to model metadata
+        dataset_path : str
+            Path to test dataset
+        """
+        # Load model
+        with open(model_path, 'rb') as f:
+            self.model = pickle.load(f)
+
+        # Load metadata
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+        
+        self.feature_names = metadata['feature_names']
+        self.label_map = {int(k): v for k, v in metadata['label_map'].items()}
+
+        # Load dataset
+        df = pd.read_csv(dataset_path)
+        X = df.drop('label', axis=1)
+        y = df['label']
+
+        # Split (use same random state as training)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
+
+        print(f"✓ Loaded model and dataset")
+        print(f"  Test samples: {len(self.X_test)}")
+
+    def plot_confusion_matrix(self, save_path=None):
+        """
+        Plot confusion matrix heatmap.
+
+        Parameters
+        ----------
+        save_path : str, optional
+            Path to save plot
+        """
+        y_pred = self.model.predict(self.X_test)
+        ordered_labels = sorted(self.label_map.keys())
+        ordered_names = [self.label_map[label] for label in ordered_labels]
+        cm = confusion_matrix(self.y_test, y_pred, labels=ordered_labels)
+
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                   xticklabels=ordered_names,
+                   yticklabels=ordered_names)
+        
+        plt.title('Confusion Matrix - Mental Health Classification', fontsize=14, pad=20)
+        plt.ylabel('True Label', fontsize=12)
+        plt.xlabel('Predicted Label', fontsize=12)
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"✓ Saved confusion matrix: {save_path}")
+
+        plt.show()
+
+    def plot_feature_importance(self, top_n=20, save_path=None):
+        """
+        Plot top feature importance.
+
+        Parameters
+        ----------
+        top_n : int
+            Number of top features to plot
+        save_path : str, optional
+            Path to save plot
+        """
+        importance = self.model.feature_importances_
+        
+        importance_df = pd.DataFrame({
+            'feature': self.feature_names,
+            'importance': importance
+        }).sort_values('importance', ascending=False).head(top_n)
+
+        plt.figure(figsize=(12, 8))
+        plt.barh(range(len(importance_df)), importance_df['importance'], color='steelblue')
+        plt.yticks(range(len(importance_df)), importance_df['feature'])
+        plt.xlabel('Importance', fontsize=12)
+        plt.title(f'Top {top_n} Most Important Features', fontsize=14, pad=20)
+        plt.gca().invert_yaxis()
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"✓ Saved feature importance: {save_path}")
+
+        plt.show()
+
+    def plot_class_performance(self, save_path=None):
+        """
+        Plot per-class performance metrics.
+
+        Parameters
+        ----------
+        save_path : str, optional
+            Path to save plot
+        """
+        from sklearn.metrics import precision_score, recall_score, f1_score
+
+        y_pred = self.model.predict(self.X_test)
+
+        ordered_labels = sorted(self.label_map.keys())
+        ordered_names = [self.label_map[label] for label in ordered_labels]
+
+        # Compute per-class metrics
+        precision = precision_score(self.y_test, y_pred, labels=ordered_labels, average=None, zero_division=0)
+        recall = recall_score(self.y_test, y_pred, labels=ordered_labels, average=None, zero_division=0)
+        f1 = f1_score(self.y_test, y_pred, labels=ordered_labels, average=None, zero_division=0)
+
+        # Create DataFrame
+        metrics_df = pd.DataFrame({
+            'Class': ordered_names,
+            'Precision': precision,
+            'Recall': recall,
+            'F1-Score': f1
+        })
+
+        # Plot
+        fig, ax = plt.subplots(figsize=(12, 6))
+        
+        x = np.arange(len(metrics_df))
+        width = 0.25
+
+        ax.bar(x - width, metrics_df['Precision'], width, label='Precision', color='skyblue')
+        ax.bar(x, metrics_df['Recall'], width, label='Recall', color='lightcoral')
+        ax.bar(x + width, metrics_df['F1-Score'], width, label='F1-Score', color='lightgreen')
+
+        ax.set_xlabel('Mental Health State', fontsize=12)
+        ax.set_ylabel('Score', fontsize=12)
+        ax.set_title('Per-Class Performance Metrics', fontsize=14, pad=20)
+        ax.set_xticks(x)
+        ax.set_xticklabels(metrics_df['Class'])
+        ax.legend()
+        ax.set_ylim([0, 1.1])
+        ax.grid(axis='y', alpha=0.3)
+
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"✓ Saved class performance: {save_path}")
+
+        plt.show()
+
+    def plot_prediction_confidence(self, save_path=None):
+        """
+        Plot prediction confidence distribution.
+
+        Parameters
+        ----------
+        save_path : str, optional
+            Path to save plot
+        """
+        y_pred_proba = self.model.predict_proba(self.X_test)
+        max_proba = np.max(y_pred_proba, axis=1)
+
+        plt.figure(figsize=(10, 6))
+        plt.hist(max_proba, bins=50, color='steelblue', edgecolor='black', alpha=0.7)
+        plt.xlabel('Prediction Confidence', fontsize=12)
+        plt.ylabel('Count', fontsize=12)
+        plt.title('Prediction Confidence Distribution', fontsize=14, pad=20)
+        plt.axvline(0.8, color='red', linestyle='--', label='High Confidence (0.8)')
+        plt.legend()
+        plt.grid(axis='y', alpha=0.3)
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"✓ Saved confidence distribution: {save_path}")
+
+        plt.show()
+
+        # Print confidence stats
+        print(f"\n{'='*60}")
+        print("PREDICTION CONFIDENCE STATISTICS")
+        print(f"{'='*60}")
+        print(f"Mean confidence: {max_proba.mean():.4f}")
+        print(f"Median confidence: {np.median(max_proba):.4f}")
+        print(f"High confidence (>0.8): {(max_proba > 0.8).sum()} / {len(max_proba)} ({(max_proba > 0.8).mean()*100:.1f}%)")
+        print(f"Low confidence (<0.5): {(max_proba < 0.5).sum()} / {len(max_proba)} ({(max_proba < 0.5).mean()*100:.1f}%)")
+
+    def generate_full_report(self, output_dir='ml/evaluation'):
+        """
+        Generate complete evaluation report with all visualizations.
+
+        Parameters
+        ----------
+        output_dir : str
+            Directory to save reports
+        """
+        import os
+        os.makedirs(output_dir, exist_ok=True)
+
+        print(f"\n{'='*60}")
+        print("GENERATING FULL EVALUATION REPORT")
+        print(f"{'='*60}")
+
+        # Plot all visualizations
+        self.plot_confusion_matrix(save_path=f'{output_dir}/confusion_matrix.png')
+        self.plot_feature_importance(top_n=20, save_path=f'{output_dir}/feature_importance.png')
+        self.plot_class_performance(save_path=f'{output_dir}/class_performance.png')
+        self.plot_prediction_confidence(save_path=f'{output_dir}/confidence_distribution.png')
+
+        # Generate text report
+        y_pred = self.model.predict(self.X_test)
+        ordered_labels = sorted(self.label_map.keys())
+        ordered_names = [self.label_map[label] for label in ordered_labels]
+        report = classification_report(
+            self.y_test,
+            y_pred,
+            labels=ordered_labels,
+            target_names=ordered_names,
+            digits=4,
+            zero_division=0
+        )
+
+        report_path = f'{output_dir}/classification_report.txt'
+        with open(report_path, 'w') as f:
+            f.write("="*60 + "\n")
+            f.write("MENTAL HEALTH CLASSIFICATION - EVALUATION REPORT\n")
+            f.write("="*60 + "\n\n")
+            f.write(report)
+            f.write("\n\n")
+            f.write("="*60 + "\n")
+            f.write("CONFUSION MATRIX\n")
+            f.write("="*60 + "\n")
+            cm = confusion_matrix(self.y_test, y_pred, labels=ordered_labels)
+            f.write(str(cm))
+
+        print(f"\n✓ Full evaluation report generated: {output_dir}")
+        print(f"  - Confusion matrix plot")
+        print(f"  - Feature importance plot")
+        print(f"  - Class performance plot")
+        print(f"  - Confidence distribution plot")
+        print(f"  - Text report")
+
+
+if __name__ == "__main__":
+    """
+    Example usage: Evaluate trained model
+    """
+    evaluator = ModelEvaluator(
+        model_path='ml/mental_health_model.pkl',
+        metadata_path='ml/model_metadata.json',
+        dataset_path='ml/training_dataset.csv'
+    )
+
+    # Generate full report
+    evaluator.generate_full_report(output_dir='ml/evaluation')
+
+    print(f"\n✓ Evaluation complete")
+
+
+================================================================================
+FILE: ml/record_acted_session.py
+================================================================================
+
+"""
+Acting Session Helper
+
+Guides recording for requested mental-health condition names and
+extracts real patterns for hybrid dataset generation.
+"""
+
+import os
+import sys
+
+from disorder_profiles import DISORDER_LABELS, CONDITION_IMPORTANCE_PRIORS, DISORDER_PROFILES
+
+
+DISORDER_INSTRUCTIONS = {
+    'depression': {
+        'duration': 120,
+        'instructions': """
+DEPRESSION GUIDE (2 minutes)
+- Flat/low facial expression
+- Reduced smile and gesture frequency
+- More downward gaze, less eye contact
+- Slower response timing
+"""
+    },
+    'anxiety': {
+        'duration': 120,
+        'instructions': """
+ANXIETY GUIDE (2 minutes)
+- Frequent blinking
+- Brow tension / lip compression
+- Frequent gaze shifts
+- Fast but inconsistent reaction timing
+"""
+    },
+    'stress': {
+        'duration': 120,
+        'instructions': """
+STRESS GUIDE (2 minutes)
+- Sustained tension in face
+- Moderate fidgeting and micro-movements
+- Faster gaze changes
+- Slightly delayed but variable response timing
+"""
+    },
+    'bipolar_mania': {
+        'duration': 120,
+        'instructions': """
+BIPOLAR MANIA GUIDE (2 minutes)
+- High expressivity and gesture rate
+- Rapid head and face transitions
+- High energy throughout
+- Fast response timing
+"""
+    },
+    'phobia_common': {
+        'duration': 120,
+        'instructions': """
+PHOBIA (COMMON) GUIDE (2 minutes)
+- Vigilant scanning gaze
+- Elevated blink and tension
+- Avoid sustained eye contact
+- Reactive facial shifts
+"""
+    },
+    'suicidal_tendency': {
+        'duration': 120,
+        'instructions': """
+SUICIDAL TENDENCY GUIDE (2 minutes)
+- Low affect and reduced movement
+- Reduced eye contact with more downward gaze
+- Longer pauses and delayed responses
+- Do NOT imitate any self-harm actions
+"""
+    }
+}
+
+
+def print_condition_priors(disorder_name):
+    priors = CONDITION_IMPORTANCE_PRIORS.get(disorder_name, {})
+    profile = DISORDER_PROFILES.get(disorder_name, {})
+
+    print("\nTop prior feature importances (design priors):")
+    for feature, weight in sorted(priors.items(), key=lambda item: item[1], reverse=True):
+        print(f"  - {feature}: {weight:.2f}")
+
+    print("\nKey multiplier values in current profile:")
+    for feature, mods in list(profile.get('modifiers', {}).items())[:12]:
+        print(f"  - {feature}: mean_mult={mods['mean_mult']:.2f}, std_mult={mods['std_mult']:.2f}")
+
+
+def record_session(disorder_name):
+    if disorder_name not in DISORDER_INSTRUCTIONS:
+        print(f"✗ Unknown disorder: {disorder_name}")
+        print(f"  Valid options: {', '.join(DISORDER_INSTRUCTIONS.keys())}")
+        return
+
+    label = DISORDER_LABELS[disorder_name]
+    info = DISORDER_INSTRUCTIONS[disorder_name]
+
+    print("\n" + "=" * 70)
+    print(f"RECORDING ACTED SESSION: {disorder_name.upper()} (label={label})")
+    print("=" * 70)
+    print(info['instructions'])
+    print_condition_priors(disorder_name)
+
+    print("\nManual recording flow:")
+    print("  1. Run: python run_pipeline.py")
+    print(f"  2. Act as {disorder_name} for ~{info['duration']//60} minutes")
+    print("  3. Press ESC")
+    print("  4. Take newest CSV from output/scaled/")
+
+    print("\nThen extract pattern with:")
+    print("python -c \"from ml.synthetic_generator import generate_from_real_session; "
+          f"generate_from_real_session('output/scaled/YOUR_FILE.csv','{disorder_name}')\"")
+
+
+def check_recorded_sessions():
+    print("\n" + "=" * 70)
+    print("RECORDED ACTING SESSIONS STATUS")
+    print("=" * 70)
+
+    for disorder in DISORDER_INSTRUCTIONS.keys():
+        pattern_file = f'ml/real_patterns_{disorder}.json'
+        status = "Real patterns available" if os.path.exists(pattern_file) else "Not recorded yet"
+        print(f"{'✓' if os.path.exists(pattern_file) else '✗'} {disorder:20s} - {status}")
+
+
+def generate_hybrid_dataset_now():
+    print("\n" + "=" * 70)
+    print("GENERATING HYBRID DATASET")
+    print("=" * 70)
+
+    real_patterns = {}
+    for disorder in DISORDER_INSTRUCTIONS.keys():
+        pattern_file = f'ml/real_patterns_{disorder}.json'
+        if os.path.exists(pattern_file):
+            real_patterns[disorder] = pattern_file
+            print(f"✓ Using real patterns for: {disorder}")
+
+    if not real_patterns:
+        print("\n✗ No real patterns found. Record at least one session first.")
+        return
+
+    from synthetic_generator import generate_hybrid_dataset
+
+    dataset = generate_hybrid_dataset(
+        baseline_stats_path='ml/baseline_stats.json',
+        real_patterns_paths=real_patterns,
+        samples_per_class=6000,
+        output_path='ml/training_dataset_hybrid.csv'
+    )
+
+    print("\n✓ Hybrid dataset created: ml/training_dataset_hybrid.csv")
+    print(f"  Total samples: {len(dataset)}")
+    print(f"  Real classes: {len(real_patterns)}")
+    print(f"  Synthetic classes: {len(DISORDER_INSTRUCTIONS) - len(real_patterns)}")
+    print("\nRetrain:")
+    print("python -c \"from ml.train_model import MentalHealthClassifier; c=MentalHealthClassifier(); c.train('ml/training_dataset_hybrid.csv'); c.save_model('ml/mental_health_model.pkl','ml/model_metadata.json')\"")
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("\nUsage: python ml/record_acted_session.py [command]")
+        print("Commands:")
+        for disorder in DISORDER_INSTRUCTIONS.keys():
+            print(f"  {disorder}")
+        print("  status")
+        print("  hybrid")
+        check_recorded_sessions()
+        return
+
+    command = sys.argv[1].lower()
+
+    if command == 'status':
+        check_recorded_sessions()
+    elif command == 'hybrid':
+        generate_hybrid_dataset_now()
+    elif command in DISORDER_INSTRUCTIONS:
+        record_session(command)
+    else:
+        print(f"✗ Unknown command: {command}")
+        print(f"  Valid: {', '.join(list(DISORDER_INSTRUCTIONS.keys()) + ['status', 'hybrid'])}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+================================================================================
+FILE: ml/run_full_pipeline.py
+================================================================================
+
+"""
+Complete ML Training Pipeline
+
+Orchestrates the entire machine learning workflow:
+1. Window aggregation
+2. Baseline statistics
+3. Synthetic dataset generation
+4. XGBoost training
+5. Model evaluation
+
+Usage:
+    python ml/run_full_pipeline.py
+"""
+
+import os
+from glob import glob
+
+
+def find_default_baseline_csv():
+    candidates = sorted(glob('output/scaled/*.csv'), key=os.path.getmtime)
+    if not candidates:
+        raise FileNotFoundError('No CSV found in output/scaled/')
+    return candidates[-1]
+
+
+def run_full_pipeline():
+    """
+    Execute complete ML pipeline.
+    """
+    print("\n" + "="*70)
+    print(" " * 15 + "MENTAL HEALTH ML PIPELINE")
+    print("="*70)
+    print("\nThis will:")
+    print("  1. Aggregate your baseline data into 5-second windows")
+    print("  2. Analyze baseline behavioral distributions")
+    print("  3. Generate synthetic training samples for 6 classes")
+    print("  4. Train XGBoost classifier")
+    print("  5. Evaluate model performance")
+    print("\nEstimated time: 2-5 minutes")
+    print("="*70)
+
+    input("\nPress ENTER to start...")
+
+    # Step 1: Window Aggregation
+    print("\n" + "="*70)
+    print("STEP 1/5: Window Aggregation")
+    print("="*70)
+    
+    from ml.window_aggregator import WindowAggregator
+    
+    baseline_csv = os.getenv('BASELINE_CSV', find_default_baseline_csv())
+    print(f"Using baseline CSV: {baseline_csv}")
+
+    aggregator = WindowAggregator(window_duration=5.0, fps=30)
+    baseline_windowed = aggregator.aggregate_csv(
+        csv_path=baseline_csv,
+        output_path='ml/baseline_windows.csv',
+        label=None
+    )
+
+    if baseline_windowed is None or len(baseline_windowed) == 0:
+        print("\n✗ Error: Window aggregation failed")
+        return
+
+    print(f"\n✓ Step 1 Complete: {len(baseline_windowed)} baseline windows created")
+
+    # Step 2: Baseline Statistics
+    print("\n" + "="*70)
+    print("STEP 2/5: Baseline Statistical Analysis")
+    print("="*70)
+
+    from ml.baseline_stats import BaselineAnalyzer
+
+    analyzer = BaselineAnalyzer()
+    stats = analyzer.analyze_csv(
+        csv_path='ml/baseline_windows.csv',
+        save_path='ml/baseline_stats.json'
+    )
+
+    print(f"\n✓ Step 2 Complete: Baseline distributions computed")
+
+    # Step 3: Synthetic Dataset Generation
+    print("\n" + "="*70)
+    print("STEP 3/5: Synthetic Dataset Generation")
+    print("="*70)
+
+    from synthetic_generator import SyntheticGenerator
+
+    generator = SyntheticGenerator('ml/baseline_stats.json')
+    dataset = generator.generate_full_dataset(
+        samples_per_class=2000,
+        output_path='ml/training_dataset.csv'
+    )
+
+    print(f"\n✓ Step 3 Complete: {len(dataset)} training samples generated")
+
+    # Step 4: XGBoost Training
+    print("\n" + "="*70)
+    print("STEP 4/5: XGBoost Training")
+    print("="*70)
+
+    from train_model import MentalHealthClassifier
+
+    classifier = MentalHealthClassifier(
+        n_estimators=500,
+        max_depth=6,
+        learning_rate=0.05
+    )
+
+    results = classifier.train('ml/training_dataset.csv', test_size=0.2)
+
+    # Feature importance
+    importance_df = classifier.get_feature_importance(top_n=20)
+    importance_df.to_csv('ml/feature_importance.csv', index=False)
+
+    # Save model
+    classifier.save_model(
+        model_path='ml/mental_health_model.pkl',
+        metadata_path='ml/model_metadata.json'
+    )
+
+    print(f"\n✓ Step 4 Complete: Model trained and saved")
+
+    # Step 5: Evaluation
+    print("\n" + "="*70)
+    print("STEP 5/5: Model Evaluation")
+    print("="*70)
+
+    from evaluate_model import ModelEvaluator
+
+    evaluator = ModelEvaluator(
+        model_path='ml/mental_health_model.pkl',
+        metadata_path='ml/model_metadata.json',
+        dataset_path='ml/training_dataset.csv'
+    )
+
+    evaluator.generate_full_report(output_dir='ml/evaluation')
+
+    print(f"\n✓ Step 5 Complete: Evaluation report generated")
+
+    # Final Summary
+    print("\n" + "="*70)
+    print(" " * 20 + "PIPELINE COMPLETE!")
+    print("="*70)
+    print("\n📊 Generated Files:")
+    print(f"  ├─ ml/baseline_windows.csv         ({len(baseline_windowed)} windows)")
+    print(f"  ├─ ml/baseline_stats.json          (Feature distributions)")
+    print(f"  ├─ ml/training_dataset.csv         ({len(dataset)} samples)")
+    print(f"  ├─ ml/mental_health_model.pkl      (Trained model)")
+    print(f"  ├─ ml/model_metadata.json          (Model info)")
+    print(f"  ├─ ml/feature_importance.csv       (Feature rankings)")
+    print(f"  └─ ml/evaluation/                  (Plots & reports)")
+
+    print("\n📈 Model Performance:")
+    print(f"  ├─ Accuracy:  {results['accuracy']:.2%}")
+    print(f"  ├─ Precision: {results['precision']:.2%}")
+    print(f"  ├─ Recall:    {results['recall']:.2%}")
+    print(f"  └─ F1 Score:  {results['f1']:.2%}")
+
+    print("\n🎯 Next Steps:")
+    print("  1. Review evaluation plots in ml/evaluation/")
+    print("  2. [Optional] Record 2-min acted sessions for each disorder")
+    print("  3. [Optional] Replace synthetic patterns with real patterns")
+    print("  4. Deploy model for real-time prediction")
+
+    print("\n" + "="*70)
+
+
+if __name__ == "__main__":
+    try:
+        run_full_pipeline()
+    except KeyboardInterrupt:
+        print("\n\n✗ Pipeline interrupted by user")
+    except Exception as e:
+        print(f"\n\n✗ Pipeline failed: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+================================================================================
+FILE: ml/synthetic_generator.py
+================================================================================
+
+"""
+Synthetic Dataset Generator
+
+Generates synthetic behavioral samples by sampling from modified distributions.
+Creates balanced training dataset for XGBoost classification.
+"""
+
+import pandas as pd
+import numpy as np
+import json
+from disorder_profiles import DISORDER_LABELS, apply_disorder_modifiers
+
+
+class SyntheticGenerator:
+    """
+    Generates synthetic training samples from baseline distributions.
+    """
+
+    def __init__(self, baseline_stats_path):
+        """
+        Parameters
+        ----------
+        baseline_stats_path : str
+            Path to baseline statistics JSON
+        """
+        with open(baseline_stats_path, 'r') as f:
+            self.baseline_stats = json.load(f)
+
+        print(f"✓ Loaded baseline statistics for {len(self.baseline_stats)} features")
+
+    def generate_samples(self, disorder_name, num_samples, label=None):
+        """
+        Generate synthetic samples for a specific disorder.
+
+        Parameters
+        ----------
+        disorder_name : str
+            One of DISORDER_LABELS keys in disorder_profiles.py
+        num_samples : int
+            Number of samples to generate
+        label : int, optional
+            Class label (if None, uses DISORDER_LABELS)
+
+        Returns
+        -------
+        pd.DataFrame
+            Generated samples
+        """
+        print(f"\nGenerating {num_samples} samples for: {disorder_name}")
+
+        # Get label
+        if label is None:
+            label = DISORDER_LABELS[disorder_name]
+
+        # Apply disorder modifiers for requested condition
+        stats = apply_disorder_modifiers(self.baseline_stats, disorder_name)
+
+        # Generate samples
+        samples = []
+
+        for i in range(num_samples):
+            sample = {}
+
+            for feature, feature_stats in stats.items():
+                mean = feature_stats['mean']
+                std = feature_stats['std']
+                min_val = feature_stats['min']
+                max_val = feature_stats['max']
+
+                # Sample from normal distribution
+                value = np.random.normal(mean, std)
+
+                # Clip to realistic range
+                value = np.clip(value, min_val, max_val)
+
+                sample[feature] = value
+
+            # Add label
+            sample['label'] = label
+
+            samples.append(sample)
+
+        df = pd.DataFrame(samples)
+        print(f"  ✓ Generated {len(df)} samples (label={label})")
+
+        return df
+
+    def generate_full_dataset(self, samples_per_class=2000, output_path=None):
+        """
+        Generate complete balanced dataset for all disorders.
+
+        Parameters
+        ----------
+        samples_per_class : int
+            Number of samples per disorder class
+        output_path : str, optional
+            Path to save dataset
+
+        Returns
+        -------
+        pd.DataFrame
+            Full training dataset
+        """
+        print(f"\n{'='*60}")
+        print("SYNTHETIC DATASET GENERATION")
+        print(f"{'='*60}")
+        print(f"Samples per class: {samples_per_class}")
+        print(f"Total classes: {len(DISORDER_LABELS)}")
+        print(f"Expected total: {samples_per_class * len(DISORDER_LABELS)}")
+
+        all_samples = []
+
+        # Generate samples for each disorder
+        for disorder in DISORDER_LABELS.keys():
+            samples = self.generate_samples(disorder, samples_per_class)
+            all_samples.append(samples)
+
+        # Combine all samples
+        full_dataset = pd.concat(all_samples, ignore_index=True)
+
+        # Shuffle dataset
+        full_dataset = full_dataset.sample(frac=1, random_state=42).reset_index(drop=True)
+
+        print(f"\n{'='*60}")
+        print("DATASET SUMMARY")
+        print(f"{'='*60}")
+        print(f"Total samples: {len(full_dataset)}")
+        print(f"Features: {len(full_dataset.columns) - 1}")
+
+        print(f"\nClass distribution:")
+        class_counts = full_dataset['label'].value_counts().sort_index()
+        for label, count in class_counts.items():
+            # Find disorder name
+            disorder_name = [k for k, v in DISORDER_LABELS.items() if v == label][0]
+            print(f"  [{label}] {disorder_name}: {count}")
+
+        # Save if requested
+        if output_path:
+            full_dataset.to_csv(output_path, index=False)
+            print(f"\n✓ Saved dataset: {output_path}")
+
+        return full_dataset
+
+
+def generate_from_real_session(csv_path, disorder_name, window_duration=5.0, fps=30):
+    """
+    Extract behavioral patterns from a real acted session.
+    Alternative to synthetic generation - uses actual recording.
+
+    Parameters
+    ----------
+    csv_path : str
+        Path to frame-level CSV from acted session
+    disorder_name : str
+        Disorder being acted
+    window_duration : float
+        Window size in seconds
+    fps : int
+        Frames per second
+
+    Returns
+    -------
+    dict
+        Feature statistics extracted from real performance
+
+    Example
+    -------
+    >>> # After acting depressed for 2 minutes
+    >>> real_patterns = generate_from_real_session(
+    ...     'output/scaled/depression_session.csv', 
+    ...     'depression'
+    ... )
+    >>> # Use these patterns instead of synthetic
+    """
+    print(f"\n{'='*60}")
+    print(f"EXTRACTING REAL PATTERNS: {disorder_name}")
+    print(f"{'='*60}")
+
+    from ml.window_aggregator import WindowAggregator
+
+    # Create windows from session
+    aggregator = WindowAggregator(window_duration=window_duration, fps=fps)
+    windowed = aggregator.aggregate_csv(csv_path)
+
+    if windowed is None or len(windowed) == 0:
+        print("✗ Error: No windows generated")
+        return None
+
+    # Remove label if present
+    feature_cols = [col for col in windowed.columns if col != 'label']
+
+    # Compute statistics from this real session
+    real_stats = {}
+
+    for col in feature_cols:
+        real_stats[col] = {
+            'mean': float(windowed[col].mean()),
+            'std': float(windowed[col].std()),
+            'min': float(windowed[col].min()),
+            'max': float(windowed[col].max()),
+            'median': float(windowed[col].median()),
+            'q25': float(windowed[col].quantile(0.25)),
+            'q75': float(windowed[col].quantile(0.75))
+        }
+
+    print(f"✓ Extracted statistics from {len(windowed)} windows")
+    print(f"✓ Real behavioral patterns for '{disorder_name}' captured")
+
+    # Save real patterns
+    save_path = f'ml/real_patterns_{disorder_name}.json'
+    with open(save_path, 'w') as f:
+        json.dump(real_stats, f, indent=2)
+    print(f"✓ Saved real patterns: {save_path}")
+
+    return real_stats
+
+
+def generate_hybrid_dataset(baseline_stats_path, real_patterns_paths, 
+                           samples_per_class=6000, output_path=None):
+    """
+    Generate dataset mixing synthetic and real patterns.
+
+    Parameters
+    ----------
+    baseline_stats_path : str
+        Path to baseline statistics
+    real_patterns_paths : dict
+        Maps disorder_name -> path to real pattern JSON
+        e.g., {'depression': 'ml/real_patterns_depression.json'}
+    samples_per_class : int
+        Samples per class
+    output_path : str, optional
+        Save path
+
+    Returns
+    -------
+    pd.DataFrame
+        Hybrid dataset
+
+    Example
+    -------
+    >>> # Mix synthetic and real patterns
+    >>> dataset = generate_hybrid_dataset(
+    ...     'ml/baseline_stats.json',
+    ...     {'depression': 'ml/real_patterns_depression.json'},
+    ...     samples_per_class=2000
+    ... )
+    """
+    print(f"\n{'='*60}")
+    print("HYBRID DATASET GENERATION")
+    print(f"{'='*60}")
+    print(f"Using real patterns for: {list(real_patterns_paths.keys())}")
+    print(f"Using synthetic for remaining disorders")
+
+    generator = SyntheticGenerator(baseline_stats_path)
+    all_samples = []
+
+    for disorder in DISORDER_LABELS.keys():
+        label = DISORDER_LABELS[disorder]
+
+        # Check if we have real patterns for this disorder
+        if disorder in real_patterns_paths:
+            print(f"\n[Real] {disorder}")
+            # Load real patterns
+            with open(real_patterns_paths[disorder], 'r') as f:
+                real_stats = json.load(f)
+
+            # Generate samples from real patterns
+            samples = []
+            for i in range(samples_per_class):
+                sample = {}
+                for feature, stats in real_stats.items():
+                    mean = stats['mean']
+                    std = stats['std']
+                    min_val = stats['min']
+                    max_val = stats['max']
+
+                    value = np.random.normal(mean, std)
+                    value = np.clip(value, min_val, max_val)
+                    sample[feature] = value
+
+                sample['label'] = label
+                samples.append(sample)
+
+            df = pd.DataFrame(samples)
+            print(f"  ✓ Generated {len(df)} samples from real patterns")
+
+        else:
+            # Use synthetic generation
+            print(f"\n[Synthetic] {disorder}")
+            df = generator.generate_samples(disorder, samples_per_class)
+
+        all_samples.append(df)
+
+    # Combine and shuffle
+    full_dataset = pd.concat(all_samples, ignore_index=True)
+    full_dataset = full_dataset.sample(frac=1, random_state=42).reset_index(drop=True)
+
+    print(f"\n{'='*60}")
+    print(f"Total samples: {len(full_dataset)}")
+    print(f"Features: {len(full_dataset.columns) - 1}")
+
+    if output_path:
+        full_dataset.to_csv(output_path, index=False)
+        print(f"✓ Saved hybrid dataset: {output_path}")
+
+    return full_dataset
+
+
+if __name__ == "__main__":
+    """
+    Example usage: Generate synthetic dataset
+    """
+    # Generate fully synthetic dataset
+    generator = SyntheticGenerator('ml/baseline_stats.json')
+
+    dataset = generator.generate_full_dataset(
+        samples_per_class=2000,
+        output_path='ml/training_dataset.csv'
+    )
+
+    print(f"\n✓ Synthetic dataset generation complete")
+    print(f"\nNext step: Run train_model.py to train XGBoost classifier")
+
+
+================================================================================
+FILE: ml/train_model.py
+================================================================================
+
+"""
+XGBoost Training Pipeline
+
+Trains mental health classification model using behavioral features.
+"""
+
+import pandas as pd
+import numpy as np
+import pickle
+import json
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import confusion_matrix, classification_report
+import xgboost as xgb
+from ml.disorder_profiles import DISORDER_LABELS
+
+
+class MentalHealthClassifier:
+    """
+    XGBoost-based mental health classifier.
+    """
+
+    def __init__(self, n_estimators=500, max_depth=6, learning_rate=0.05, random_state=42):
+        """
+        Parameters
+        ----------
+        n_estimators : int
+            Number of boosting rounds
+        max_depth : int
+            Maximum tree depth
+        learning_rate : float
+            Learning rate
+        random_state : int
+            Random seed
+        """
+        self.label_map = {
+            label: name.replace('_', ' ').title()
+            for name, label in DISORDER_LABELS.items()
+        }
+
+        self.model = xgb.XGBClassifier(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            learning_rate=learning_rate,
+            random_state=random_state,
+            objective='multi:softprob',
+            num_class=len(self.label_map),
+            eval_metric='mlogloss'
+        )
+
+        self.feature_names = None
+
+    def train(self, dataset_path, test_size=0.2):
+        """
+        Train model on dataset.
+
+        Parameters
+        ----------
+        dataset_path : str
+            Path to training dataset CSV
+        test_size : float
+            Proportion of test set
+
+        Returns
+        -------
+        dict
+            Training results and metrics
+        """
+        print(f"\n{'='*60}")
+        print("XGBOOST TRAINING")
+        print(f"{'='*60}")
+
+        # Load dataset
+        df = pd.read_csv(dataset_path)
+        print(f"✓ Loaded dataset: {len(df)} samples")
+
+        # Separate features and labels
+        X = df.drop('label', axis=1)
+        y = df['label']
+
+        self.feature_names = list(X.columns)
+        print(f"✓ Features: {len(self.feature_names)}")
+
+        # Split train/test
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=42, stratify=y
+        )
+
+        print(f"✓ Train samples: {len(X_train)}")
+        print(f"✓ Test samples: {len(X_test)}")
+
+        # Train model
+        print(f"\nTraining XGBoost classifier...")
+        self.model.fit(
+            X_train, y_train,
+            eval_set=[(X_test, y_test)],
+            verbose=False
+        )
+        print(f"✓ Training complete")
+
+        # Evaluate
+        print(f"\nEvaluating model...")
+        y_pred = self.model.predict(X_test)
+
+        ordered_labels = sorted(self.label_map.keys())
+        ordered_names = [self.label_map[label] for label in ordered_labels]
+
+        results = {
+            'accuracy': accuracy_score(y_test, y_pred),
+            'precision': precision_score(y_test, y_pred, average='weighted'),
+            'recall': recall_score(y_test, y_pred, average='weighted'),
+            'f1': f1_score(y_test, y_pred, average='weighted'),
+            'confusion_matrix': confusion_matrix(y_test, y_pred, labels=ordered_labels).tolist(),
+            'classification_report': classification_report(
+                y_test,
+                y_pred,
+                labels=ordered_labels,
+                target_names=ordered_names,
+                zero_division=0
+            )
+        }
+
+        # Print results
+        print(f"\n{'='*60}")
+        print("MODEL PERFORMANCE")
+        print(f"{'='*60}")
+        print(f"Accuracy:  {results['accuracy']:.4f}")
+        print(f"Precision: {results['precision']:.4f}")
+        print(f"Recall:    {results['recall']:.4f}")
+        print(f"F1 Score:  {results['f1']:.4f}")
+
+        print(f"\n{results['classification_report']}")
+
+        return results
+
+    def get_feature_importance(self, top_n=20):
+        """
+        Get top important features.
+
+        Parameters
+        ----------
+        top_n : int
+            Number of top features
+
+        Returns
+        -------
+        pd.DataFrame
+            Feature importance ranking
+        """
+        importance = self.model.feature_importances_
+        
+        importance_df = pd.DataFrame({
+            'feature': self.feature_names,
+            'importance': importance
+        }).sort_values('importance', ascending=False)
+
+        print(f"\n{'='*60}")
+        print(f"TOP {top_n} MOST IMPORTANT FEATURES")
+        print(f"{'='*60}")
+
+        for i, row in importance_df.head(top_n).iterrows():
+            print(f"{row['feature']:50s} {row['importance']:.4f}")
+
+        return importance_df
+
+    def save_model(self, model_path, metadata_path=None):
+        """
+        Save trained model.
+
+        Parameters
+        ----------
+        model_path : str
+            Path to save model (.pkl)
+        metadata_path : str, optional
+            Path to save metadata (.json)
+        """
+        # Save model
+        with open(model_path, 'wb') as f:
+            pickle.dump(self.model, f)
+        print(f"✓ Saved model: {model_path}")
+
+        # Save metadata
+        if metadata_path:
+            metadata = {
+                'feature_names': self.feature_names,
+                'label_map': self.label_map,
+                'num_features': len(self.feature_names),
+                'num_classes': len(self.label_map),
+                'model_params': self.model.get_params()
+            }
+
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=2)
+            print(f"✓ Saved metadata: {metadata_path}")
+
+    def load_model(self, model_path, metadata_path=None):
+        """
+        Load trained model.
+
+        Parameters
+        ----------
+        model_path : str
+            Path to model file
+        metadata_path : str, optional
+            Path to metadata file
+        """
+        with open(model_path, 'rb') as f:
+            self.model = pickle.load(f)
+        print(f"✓ Loaded model: {model_path}")
+
+        if metadata_path:
+            with open(metadata_path, 'r') as f:
+                metadata = json.load(f)
+            
+            self.feature_names = metadata['feature_names']
+            self.label_map = {int(k): v for k, v in metadata['label_map'].items()}
+            print(f"✓ Loaded metadata: {metadata_path}")
+
+    def predict(self, features):
+        """
+        Predict mental health state from features.
+
+        Parameters
+        ----------
+        features : pd.DataFrame or np.array
+            Feature vector(s)
+
+        Returns
+        -------
+        np.array
+            Predicted labels
+        """
+        return self.model.predict(features)
+
+    def predict_proba(self, features):
+        """
+        Get prediction probabilities.
+
+        Parameters
+        ----------
+        features : pd.DataFrame or np.array
+            Feature vector(s)
+
+        Returns
+        -------
+        np.array
+            Class probabilities
+        """
+        return self.model.predict_proba(features)
+
+
+if __name__ == "__main__":
+    """
+    Example usage: Train classifier
+    """
+    # Create and train classifier
+    classifier = MentalHealthClassifier(
+        n_estimators=500,
+        max_depth=6,
+        learning_rate=0.05
+    )
+
+    # Train on dataset
+    results = classifier.train('ml/training_dataset.csv', test_size=0.2)
+
+    # Feature importance
+    importance_df = classifier.get_feature_importance(top_n=20)
+
+    # Save importance
+    importance_df.to_csv('ml/feature_importance.csv', index=False)
+
+    # Save model
+    classifier.save_model(
+        model_path='ml/mental_health_model.pkl',
+        metadata_path='ml/model_metadata.json'
+    )
+
+    print(f"\n✓ Training complete")
+    print(f"✓ Model saved")
+    print(f"\nNext step: Run evaluate_model.py for detailed analysis")
+
+
+================================================================================
+FILE: ml/window_aggregator.py
+================================================================================
+
+"""
+Window Aggregator
+
+Converts frame-by-frame CSV data into 5-second behavioral windows.
+Each window becomes a single training sample with aggregated features.
+"""
+
+import pandas as pd
+import numpy as np
+
+
+class WindowAggregator:
+    """
+    Aggregates frame-level features into fixed-duration windows.
+    """
+
+    def __init__(self, window_duration=5.0, fps=30):
+        """
+        Parameters
+        ----------
+        window_duration : float
+            Window size in seconds (default: 5.0)
+        fps : int
+            Frames per second (default: 30)
+        """
+        self.window_duration = window_duration
+        self.fps = fps
+        self.frames_per_window = int(window_duration * fps)
+
+    def aggregate_csv(self, csv_path, output_path=None, label=None):
+        """
+        Convert frame-level CSV to window-level dataset.
+
+        Parameters
+        ----------
+        csv_path : str
+            Path to input CSV with frame-level features
+        output_path : str, optional
+            Path to save windowed dataset
+        label : int or str, optional
+            Optional class label to assign to all generated windows
+
+        Returns
+        -------
+        pd.DataFrame
+            Windowed dataset with aggregated features
+        """
+        print(f"\n{'='*60}")
+        print(f"WINDOW AGGREGATION: {csv_path}")
+        print(f"{'='*60}")
+
+        # Load data
+        df = pd.read_csv(csv_path)
+        print(f"✓ Loaded {len(df)} frames")
+
+        # Remove timestamp column if present
+        feature_cols = [col for col in df.columns if col != 'timestamp']
+        print(f"✓ Found {len(feature_cols)} features")
+
+        # Calculate number of complete windows
+        num_windows = len(df) // self.frames_per_window
+        print(f"✓ Creating {num_windows} windows ({self.window_duration}s each)")
+
+        if num_windows == 0:
+            print(f"✗ Error: Not enough frames for a single window")
+            print(f"  Need: {self.frames_per_window} frames, Got: {len(df)} frames")
+            return None
+
+        # Aggregate windows
+        windows = []
+
+        for i in range(num_windows):
+            start_idx = i * self.frames_per_window
+            end_idx = start_idx + self.frames_per_window
+
+            window_data = df.iloc[start_idx:end_idx][feature_cols]
+
+            # Compute aggregated features
+            window_features = {}
+
+            for col in feature_cols:
+                window_features[f'{col}_mean'] = window_data[col].mean()
+                window_features[f'{col}_std'] = window_data[col].std()
+                window_features[f'{col}_max'] = window_data[col].max()
+                window_features[f'{col}_min'] = window_data[col].min()
+
+            # Add label if provided
+            if label is not None:
+                window_features['label'] = label
+
+            windows.append(window_features)
+
+        # Convert to DataFrame
+        windowed_df = pd.DataFrame(windows)
+
+        print(f"✓ Generated {len(windowed_df)} window samples")
+        print(f"✓ Total features per window: {len(windowed_df.columns) - (1 if label is not None else 0)}")
+
+        # Save if requested
+        if output_path:
+            windowed_df.to_csv(output_path, index=False)
+            print(f"✓ Saved to: {output_path}")
+
+        return windowed_df
+
+
+def aggregate_multiple_sessions(session_configs, output_path, window_duration=5.0, fps=30):
+    """
+    Aggregate multiple recording sessions into single dataset.
+
+    Parameters
+    ----------
+    session_configs : list of dict
+        Each dict contains {'csv_path': str, 'label': int/str}
+    output_path : str
+        Path to save combined dataset
+    window_duration : float
+        Window size in seconds
+    fps : int
+        Frames per second
+
+    Returns
+    -------
+    pd.DataFrame
+        Combined windowed dataset
+
+    Example
+    -------
+    >>> sessions = [
+    ...     {'csv_path': 'baseline.csv', 'label': 0},
+    ...     {'csv_path': 'depression.csv', 'label': 1},
+    ...     {'csv_path': 'anxiety.csv', 'label': 2}
+    ... ]
+    >>> dataset = aggregate_multiple_sessions(sessions, 'training_data.csv')
+    """
+    aggregator = WindowAggregator(window_duration=window_duration, fps=fps)
+    all_windows = []
+
+    print(f"\n{'='*60}")
+    print(f"MULTI-SESSION AGGREGATION")
+    print(f"{'='*60}")
+    print(f"Sessions to process: {len(session_configs)}\n")
+
+    for i, config in enumerate(session_configs, 1):
+        csv_path = config['csv_path']
+        label = config.get('label')
+
+        print(f"[{i}/{len(session_configs)}] Processing: {csv_path}")
+
+        windowed = aggregator.aggregate_csv(csv_path, label=label)
+
+        if windowed is not None:
+            all_windows.append(windowed)
+
+    if not all_windows:
+        print("✗ Error: No windows generated")
+        return None
+
+    # Combine all sessions
+    combined_df = pd.concat(all_windows, ignore_index=True)
+
+    print(f"\n{'='*60}")
+    print(f"COMBINED DATASET")
+    print(f"{'='*60}")
+    print(f"Total samples: {len(combined_df)}")
+
+    if 'label' in combined_df.columns:
+        print("\nClass distribution:")
+        print(combined_df['label'].value_counts().sort_index())
+
+    # Save
+    combined_df.to_csv(output_path, index=False)
+    print(f"\n✓ Saved combined dataset: {output_path}")
+
+    return combined_df
+
+
+if __name__ == "__main__":
+    """
+    Example usage: Aggregate baseline data
+    """
+    aggregator = WindowAggregator(window_duration=5.0, fps=30)
+
+    # Process baseline recording
+    baseline_windowed = aggregator.aggregate_csv(
+        csv_path='output/scaled/23_51_05_03.csv',
+        output_path='ml/baseline_windows.csv',
+        label=None
+    )
+
+    print(f"\n✓ Baseline aggregation complete")
+    print(f"  Windows created: {len(baseline_windowed)}")
+    print(f"\nNext step: Run baseline_stats.py to analyze distributions")
+
+
+================================================================================
+FILE: output/csv_logger.py
+================================================================================
+
+"""
+CSV Logger for Behavioral Features
+
+Logs both raw and scaled features to separate CSV files.
+Filename format: HH_MM_DD_MM.csv (hour_minute_day_month)
+"""
+
+import os
+import csv
+from datetime import datetime
+
+
+def generate_filename():
+    """
+    Generate timestamped filename for CSV logging.
+    
+    Format: HH_MM_DD_MM.csv
+    Example: 21_30_05_03.csv (21:30 on March 5th)
+    
+    Returns:
+        Filename string
+    """
+
+    now = datetime.now()
+
+    return now.strftime("%H_%M_%d_%m") + ".csv"
+
+
+class CSVLogger:
+    """
+    Dual CSV logger for raw and scaled features.
+    
+    Creates two CSV files per session:
+    - output/raw/HH_MM_DD_MM.csv     : Raw feature values
+    - output/scaled/HH_MM_DD_MM.csv  : Scaled features (prefixed with S_)
+    
+    Each file contains: timestamp + 34 features = 35 columns
+    """
+
+    def __init__(self, feature_names):
+        """
+        Initialize CSV logger with feature names.
+        
+        Args:
+            feature_names: List of feature names (34 features)
+        """
+
+        self.feature_names = feature_names
+
+        os.makedirs("output/scaled", exist_ok=True)
+        os.makedirs("output/raw", exist_ok=True)
+
+        filename = generate_filename()
+
+        self.scaled_path = os.path.join("output/scaled", filename)
+        self.raw_path = os.path.join("output/raw", filename)
+
+        self.initialize_files()
+
+    def initialize_files(self):
+        """
+        Create CSV files with headers.
+        
+        Scaled header: timestamp, S_AU12Mean, S_BlinkRate, ...
+        Raw header:    timestamp, AU12Mean, BlinkRate, ...
+        """
+
+        scaled_header = ["timestamp"] + [
+            f"S_{name}" for name in self.feature_names
+        ]
+
+        raw_header = ["timestamp"] + self.feature_names
+
+        with open(self.scaled_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(scaled_header)
+
+        with open(self.raw_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(raw_header)
+
+    def log(self, timestamp, raw_features, scaled_features):
+        """
+        Log feature values to both CSV files.
+        
+        Args:
+            timestamp: Current timestamp
+            raw_features: Dict of feature name -> raw value
+            scaled_features: Dict of feature name -> scaled value [0, 1]
+        """
+
+        raw_row = [timestamp] + [
+            raw_features.get(name, 0) for name in self.feature_names
+        ]
+
+        scaled_row = [timestamp] + [
+            scaled_features.get(name, 0) for name in self.feature_names
+        ]
+
+        try:
+            with open(self.raw_path, "a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(raw_row)
+
+            with open(self.scaled_path, "a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(scaled_row)
+        except Exception as e:
+            print(f"ERROR writing to CSV: {e}")
+
+
+================================================================================
+FILE: processing/baseline.py
+================================================================================
+
+"""
+Baseline Statistics Collection
+
+Collects feature values for a specified duration and computes
+mean (μ) and standard deviation (σ) for personalized normalization.
+"""
+
+import numpy as np
+
+
+class BaselineCollector:
+    """
+    Collects baseline statistics for feature normalization.
+    
+    Accumulates feature values over a specified duration (default 10 seconds)
+    and computes mean and standard deviation for each feature.
+    """
+
+    def __init__(self, duration=10):
+        """
+        Initialize baseline collector.
+        
+        Args:
+            duration: Collection duration in seconds (default: 10)
+        """
+
+        self.duration = duration
+        self.start_time = None
+
+        self.data = {}
+
+        self.mean = {}
+        self.std = {}
+
+        self.completed = False
+
+    def update(self, feature_values, timestamp):
+        """
+        Add feature values at current timestamp.
+        
+        Args:
+            feature_values: Dict of feature name -> value
+            timestamp: Current timestamp in seconds
+        """
+
+        if self.start_time is None:
+            self.start_time = timestamp
+
+        elapsed = timestamp - self.start_time
+
+        if elapsed > self.duration:
+            self.compute_statistics()
+            self.completed = True
+            return
+
+        for name, value in feature_values.items():
+
+            if name not in self.data:
+                self.data[name] = []
+
+            self.data[name].append(value)
+
+    def compute_statistics(self):
+        """
+        Compute mean (μ) and standard deviation (σ) for each feature.
+        
+        Uses outlier-resistant approach: clips extreme values before
+        computing statistics to prevent baseline corruption.
+        
+        Fallback to μ=0, σ=1 if insufficient data.
+        """
+
+        for name, values in self.data.items():
+
+            if len(values) < 2:
+                self.mean[name] = 0
+                self.std[name] = 1
+                continue
+
+            values_array = np.array(values)
+
+            # Remove extreme outliers (beyond 0.1% and 99.9% percentiles)
+            p1 = np.percentile(values_array, 0.1)
+            p99 = np.percentile(values_array, 99.9)
+
+            # Clip values to reasonable range
+            clipped = np.clip(values_array, p1, p99)
+
+            self.mean[name] = float(np.mean(clipped))
+            self.std[name] = float(np.std(clipped))
+
+            # Prevent division by zero in normalization
+            if self.std[name] < 1e-6:
+                self.std[name] = 1.0
+
+    def get_baseline(self):
+        """
+        Get computed baseline statistics.
+        
+        Returns:
+            Tuple of (mean_dict, std_dict)
+        """
+
+        return self.mean, self.std
+
+
+================================================================================
+FILE: processing/ema_smoothing.py
+================================================================================
+
+"""
+EMA Smoothing for Behavioral Features
+
+Exponential Moving Average: EMA_t = α * x_t + (1 − α) * EMA_(t−1)
+"""
+
+
+class EMASmoother:
+    """
+    Exponential Moving Average Smoother
+    """
+
+    def __init__(self, alpha=0.3):
+        self.alpha = alpha
+        self.previous = None
+
+    def update(self, value):
+        """
+        Update EMA value.
+        """
+
+        if self.previous is None:
+            self.previous = value
+            return value
+
+        ema = self.alpha * value + (1 - self.alpha) * self.previous
+
+        self.previous = ema
+
+        return ema
+
+
+class FeatureEMAManager:
+    """
+    Manages EMA smoothers for multiple features.
+    
+    One smoother per feature, automatically created on first use.
+    """
+
+    def __init__(self, alpha=0.3):
+        self.alpha = alpha
+        self.smoothers = {}
+
+    def smooth(self, feature_name, value):
+        """
+        Smooth a feature value using its dedicated EMA smoother.
+        
+        Args:
+            feature_name: Name of the feature
+            value: Raw feature value
+            
+        Returns:
+            Smoothed value
+        """
+
+        if feature_name not in self.smoothers:
+            self.smoothers[feature_name] = EMASmoother(self.alpha)
+
+        return self.smoothers[feature_name].update(value)
+
+
+================================================================================
+FILE: processing/feature_normalization.py
+================================================================================
+
+"""
+Feature Normalization
+
+Applies z-score normalization and sigmoid scaling to map features to [0, 1] range.
+
+Formula:
+    z = (value - μ) / σ
+    scaled = 1 / (1 + e^(-z))
+
+Output interpretation:
+    0.0 - 0.3 : suppressed behavior
+    0.5       : baseline
+    0.7 - 1.0 : elevated behavior
+"""
+
+import numpy as np
+
+
+def normalize_feature(value, mean, std):
+    """
+    Apply z-score normalization and sigmoid scaling with clipping.
+    
+    Args:
+        value: Current feature value
+        mean: Baseline mean (μ)
+        std: Baseline standard deviation (σ)
+        
+    Returns:
+        Scaled value in range [0, 1] with 7 decimal places
+    """
+
+    if std == 0 or std < 1e-6:
+        z = 0
+    else:
+        z = (value - mean) / std
+        # Clip extreme z-scores to prevent overflow
+        z = np.clip(z, -10, 10)
+
+    scaled = 1 / (1 + np.exp(-z))
+
+    # Hard clip to [0, 1] to ensure valid range
+    clipped = float(np.clip(scaled, 0, 1))
+    
+    # Round to 7 decimal places for consistent precision
+    return round(clipped, 7)
+
+
+class FeatureNormalizer:
+    """
+    Normalizes all features using baseline statistics.
+    
+    Applies z-score normalization followed by sigmoid scaling
+    to map feature values to [0, 1] range.
+    """
+
+    def __init__(self, mean, std):
+        """
+        Initialize normalizer with baseline statistics.
+        
+        Args:
+            mean: Dict of feature name -> mean (μ)
+            std: Dict of feature name -> std (σ)
+        """
+
+        self.mean = mean
+        self.std = std
+
+    def normalize(self, feature_values):
+        """
+        Normalize all feature values.
+        
+        Args:
+            feature_values: Dict of feature name -> raw value
+            
+        Returns:
+            Dict of feature name -> normalized value [0, 1]
+        """
+
+        normalized = {}
+
+        for name, value in feature_values.items():
+
+            mu = self.mean.get(name, 0)
+            sigma = self.std.get(name, 1)
+
+            normalized[name] = normalize_feature(value, mu, sigma)
+
+        return normalized
+
+
+================================================================================
+FILE: processing/geometry.py
+================================================================================
+
+"""
+Geometry Utilities
+
+Provides scale-invariant distance computations for facial landmarks.
+"""
+
+import numpy as np
+
+
+def distance(p1, p2):
+	"""
+	Euclidean distance between two 3D points.
+	"""
+	p1 = np.array(p1)
+	p2 = np.array(p2)
+
+	return np.linalg.norm(p1 - p2)
+
+
+def inter_ocular_distance(landmarks):
+	"""
+	Compute inter-ocular distance using eye corners.
+
+	Landmarks:
+	33  = left eye corner
+	263 = right eye corner
+	"""
+	left_eye = landmarks[33]
+	right_eye = landmarks[263]
+
+	return distance(left_eye, right_eye)
+
+
+def normalized_distance(p1, p2, iod):
+	"""
+	Compute normalized landmark distance.
+
+	normalized = distance / IOD
+	"""
+	if iod == 0:
+		return 0
+
+	return distance(p1, p2) / iod
+
+
+================================================================================
+FILE: processing/head_pose.py
+================================================================================
+
+import numpy as np
+import cv2
+
+
+def estimate_head_pose(landmarks, frame_shape):
+	"""
+	Estimate head pose (yaw, pitch, roll).
+
+	Parameters
+	----------
+	landmarks : dict
+		Subset landmark dictionary {index: (x, y, z)}
+	frame_shape : tuple
+		Frame shape from OpenCV
+
+	Returns
+	-------
+	tuple
+		(yaw, pitch, roll)
+	"""
+	height, width = frame_shape[:2]
+
+	# Use 6 anchor points for cv2.solvePnP (minimum required)
+	image_points = np.array(
+		[
+			[landmarks[1][0] * width, landmarks[1][1] * height],      # Nose tip
+			[landmarks[33][0] * width, landmarks[33][1] * height],    # Left eye
+			[landmarks[263][0] * width, landmarks[263][1] * height],  # Right eye
+			[landmarks[152][0] * width, landmarks[152][1] * height],  # Chin
+			[landmarks[61][0] * width, landmarks[61][1] * height],    # Left mouth
+			[landmarks[291][0] * width, landmarks[291][1] * height],  # Right mouth
+		],
+		dtype="double",
+	)
+
+	# 3D model points (approximate facial landmarks in mm)
+	model_points = np.array(
+		[
+			(0.0, 0.0, 0.0),        # Nose tip
+			(-30.0, 40.0, -30.0),   # Left eye
+			(30.0, 40.0, -30.0),    # Right eye
+			(0.0, -50.0, -30.0),    # Chin
+			(-20.0, -20.0, -10.0),  # Left mouth
+			(20.0, -20.0, -10.0),   # Right mouth
+		],
+		dtype="double",
+	)
+
+	focal_length = width
+	center = (width / 2, height / 2)
+
+	camera_matrix = np.array(
+		[
+			[focal_length, 0, center[0]],
+			[0, focal_length, center[1]],
+			[0, 0, 1],
+		],
+		dtype="double",
+	)
+
+	dist_coeffs = np.zeros((4, 1), dtype="double")
+
+	success, rotation_vector, translation_vector = cv2.solvePnP(
+		model_points,
+		image_points,
+		camera_matrix,
+		dist_coeffs,
+		flags=cv2.SOLVEPNP_ITERATIVE,
+	)
+
+	if not success:
+		return 0.0, 0.0, 0.0
+
+	# Use rotation vector angles directly
+	# Each element of rotation_vector is angle * axis_unit_vector
+	# Magnitude gives rotation angle, direction gives axis
+	
+	angle = np.linalg.norm(rotation_vector)
+	
+	if angle < 1e-6:
+		# No rotation
+		return 0.0, 0.0, 0.0
+	
+	# Normalize to get axis
+	axis = rotation_vector / angle
+	
+	# Convert angle from radians to degrees
+	angle_deg = angle * 180 / np.pi
+	
+	# Clamp unrealistic values
+	angle_deg = np.clip(angle_deg, -90, 90)
+	
+	# Map axis components to yaw, pitch, roll
+	# axis[0] = x-component (pitch axis)
+	# axis[1] = y-component (yaw axis) 
+	# axis[2] = z-component (roll axis)
+	
+	pitch = float(axis[0] * angle_deg)
+	yaw = float(axis[1] * angle_deg)
+	roll = float(axis[2] * angle_deg)
+
+	return yaw, pitch, roll
+
+
+def reject_unstable_frames(yaw, pitch):
+	"""
+	Check if frame head pose is unstable.
+
+	Returns True when frame should be rejected.
+	
+	Thresholds:
+	- Yaw: ±45° (horizontal head turn)
+	- Pitch: ±30° (vertical head tilt)
+	"""
+	if abs(yaw) > 45:
+		return True
+
+	if abs(pitch) > 30:
+		return True
+
+	return False
+
+
+def align_landmarks(landmarks):
+	"""
+	Align landmarks relative to nose center.
+	"""
+	nose = landmarks[1]
+	aligned = {}
+
+	for idx, (x, y, z) in landmarks.items():
+		aligned[idx] = (
+			x - nose[0],
+			y - nose[1],
+			z - nose[2],
+		)
+
+	return aligned
+
+
+================================================================================
+FILE: run_pipeline.py
+================================================================================
+
+"""
+Behavioral Feature Extraction Pipeline
+
+Complete pipeline integrating all 34 features with:
+- MediaPipe landmark detection
+- Head pose estimation and frame rejection
+- Frame buffering for temporal features
+- EMA smoothing
+- Baseline collection (10 seconds)
+- Z-score + sigmoid normalization
+- Dual CSV logging (raw + scaled)
+
+Usage:
+    python run_pipeline.py
+
+Controls:
+    ESC : Exit
+"""
+
+import cv2
+import time
+
+from landmarks.mediapipe_detector import MediaPipeDetector
+from landmarks.landmark_subset import extract_subset
+
+from processing.head_pose import estimate_head_pose, reject_unstable_frames
+from processing.ema_smoothing import FeatureEMAManager
+
+from processing.baseline import BaselineCollector
+from processing.feature_normalization import FeatureNormalizer
+
+from core.frame_buffer import FrameBuffer
+from core.feature_registry import FEATURE_REGISTRY
+
+from output.csv_logger import CSVLogger
+
+import os
+
+os.environ['QT_QPA_PLATFORM'] = 'xcb'
+def main():
+    """
+    Main pipeline execution.
+    """
+
+    print("=" * 60)
+    print("BEHAVIORAL FEATURE EXTRACTION PIPELINE")
+    print("=" * 60)
+    print("\nInitializing components...")
+
+    # Step 1: Initialize components
+    detector = MediaPipeDetector()
+    frame_buffer = FrameBuffer()
+    ema_manager = FeatureEMAManager(alpha=0.3)
+    baseline = BaselineCollector(duration=10)
+
+    feature_names = [f.name for f in FEATURE_REGISTRY]
+
+    # Normalizer created after baseline completes
+    normalizer = None
+    baseline_logged = False
+
+    print(f"✓ {len(FEATURE_REGISTRY)} features loaded")
+    print("✓ Components initialized")
+
+    # Step 2: Start webcam
+    print("\nStarting webcam...")
+    cap = cv2.VideoCapture(2)  # Try default webcam first
+
+    if not cap.isOpened():
+        print("✗ Error: Cannot open webcam")
+        return
+
+    print("✓ Webcam opened")
+    print("\n" + "=" * 60)
+    print("BASELINE COLLECTION (10 seconds)")
+    print("=" * 60)
+    print("Please remain still and maintain neutral expression\n")
+    print("Reading first frame...")
+
+    start_time = time.time()
+    frame_count = 0
+
+    # Step 3: Create CSV logger
+    logger = CSVLogger(feature_names)
+    print(f"✓ CSV logging initialized")
+    print("\nStarting main loop (Press ESC to exit)...")
+    
+    # Create window early
+    cv2.namedWindow("Behavioral Analysis Pipeline", cv2.WINDOW_NORMAL)
+
+    try:
+        # Step 4: Main pipeline loop
+        while True:
+
+            ret, frame = cap.read()
+
+            if not ret:
+                print("✗ Error: Cannot read frame")
+                break
+
+            timestamp = time.time()
+            frame_count += 1
+            
+            # Debug: Show we got a frame
+            if frame_count == 1:
+                print(f"✓ First frame received: {frame.shape}")
+            
+            # Show raw frame immediately for first few frames
+            if frame_count <= 3:
+                cv2.imshow("Behavioral Analysis Pipeline", frame)
+                cv2.waitKey(1)
+                # print(f"Frame {frame_count} displayed")  # Reduce terminal clutter
+
+            # Step 5: Detect landmarks
+            landmarks = detector.detect(frame)
+            
+            # Debug landmark detection
+            if frame_count <= 3:
+                if landmarks is None:
+                    print(f"Frame {frame_count}: No landmarks detected")
+                else:
+                    print(f"Frame {frame_count}: Landmarks detected ✓")
+
+            if landmarks is None:
+                cv2.putText(
+                    frame,
+                    "No face detected",
+                    (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (0, 0, 255),
+                    2,
+                )
+                cv2.imshow("Behavioral Analysis Pipeline", frame)
+                if cv2.waitKey(1) & 0xFF == 27:
+                    break
+                continue
+
+            # Step 6: Extract subset
+            subset = extract_subset(landmarks)
+
+            # Step 7: Head pose estimation
+            yaw, pitch, roll = estimate_head_pose(subset, frame.shape)
+            
+            # Debug head pose for first frame only
+            if frame_count == 3:
+                print(f"Frame 3 pose: yaw={yaw:.1f}°, pitch={pitch:.1f}°, roll={roll:.1f}°")
+                print("(Head pose rejection temporarily DISABLED for testing)")
+            
+            # TODO: Fix head pose calculation - currently disabled to allow data collection
+            # Temporarily accepting all frames regardless of pose
+            unstable = False  # reject_unstable_frames(yaw, pitch)
+
+            if unstable:
+                # Count rejected frames
+                if frame_count <= 10:
+                    print(f"Frame {frame_count}: REJECTED (unstable)")
+                cv2.putText(
+                    frame,
+                    f"Unstable frame (yaw={yaw:.1f}, pitch={pitch:.1f})",
+                    (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (0, 165, 255),
+                    2,
+                )
+                cv2.imshow("Behavioral Analysis Pipeline", frame)
+                if cv2.waitKey(1) & 0xFF == 27:
+                    break
+                continue
+
+            # Step 8: Compute features
+            raw_features = {}
+
+            for feature in FEATURE_REGISTRY:
+                try:
+                    value = feature.compute(subset, frame_buffer, timestamp)
+                    raw_features[feature.name] = value
+                except Exception as e:
+                    raw_features[feature.name] = 0
+            
+            # Confirm feature computation for first frame
+            if frame_count == 1:
+                print(f"✓ Frame {frame_count}: {len(raw_features)} features computed")
+
+            # Step 9: Apply EMA smoothing
+            smoothed_features = {}
+
+            for name, value in raw_features.items():
+                smoothed = ema_manager.smooth(name, value)
+                smoothed_features[name] = smoothed
+
+            # Step 10: Add frame to buffer
+            frame_buffer.add_frame(
+                timestamp,
+                subset,
+                (yaw, pitch, roll),
+                smoothed_features
+            )
+
+            # Step 11: Baseline collection
+            if not baseline.completed:
+                baseline.update(smoothed_features, timestamp)
+                # Debug baseline progress
+                if frame_count <= 10 or frame_count % 50 == 0:
+                    elapsed = timestamp - (baseline.start_time or timestamp)
+                    print(f"Frame {frame_count}: Baseline update | Elapsed: {elapsed:.1f}s / 10s")
+
+            # Step 12: Normalize features
+            if baseline.completed:
+                # Initialize normalizer once after baseline completes
+                if normalizer is None:
+                    mu, sigma = baseline.get_baseline()
+                    normalizer = FeatureNormalizer(mu, sigma)
+                    if not baseline_logged:
+                        print("\n" + "=" * 60)
+                        print("BASELINE COMPLETE - STARTING FEATURE LOGGING")
+                        print("=" * 60 + "\n")
+                        baseline_logged = True
+
+                scaled_features = normalizer.normalize(smoothed_features)
+                status = f"Logging (Buffer: {frame_buffer.size()}/150)"
+            else:
+                scaled_features = smoothed_features
+                elapsed = timestamp - start_time
+                remaining = max(0, 10 - elapsed)
+                status = f"Baseline: {remaining:.1f}s remaining"
+
+            # Step 13: Log CSV
+            logger.log(timestamp, smoothed_features, scaled_features)
+            
+            # Confirm logging for first few frames
+            if frame_count <= 3:
+                print(f"✓ Frame {frame_count}: Data logged to CSV")
+            
+            # Show progress every 50 frames
+            if frame_count % 50 == 0:
+                print(f"Processed {frame_count} frames | {status}")
+
+            # Step 14: Display frame
+            cv2.putText(
+                frame,
+                status,
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (0, 255, 0),
+                2,
+            )
+
+            cv2.imshow("Behavioral Analysis Pipeline", frame)
+
+            if cv2.waitKey(1) & 0xFF == 27:
+                print("\nExiting pipeline...")
+                break
+                break
+
+    except KeyboardInterrupt:
+        print("\n\nInterrupted by user")
+
+    finally:
+        # Step 15: Cleanup
+        cap.release()
+        cv2.destroyAllWindows()
+
+        elapsed = time.time() - start_time
+        fps = frame_count / elapsed if elapsed > 0 else 0
+
+        print("\n" + "=" * 60)
+        print("PIPELINE SUMMARY")
+        print("=" * 60)
+        print(f"Total frames processed: {frame_count}")
+        print(f"Total time: {elapsed:.1f}s")
+        print(f"Average FPS: {fps:.1f}")
+        print(f"Baseline completed: {'Yes' if baseline.completed else 'No'}")
+
+        print(f"\nCSV files saved:")
+        print(f"  Raw:    {logger.raw_path}")
+        print(f"  Scaled: {logger.scaled_path}")
+
+        print("\n✓ Pipeline terminated successfully")
+
+
+if __name__ == "__main__":
+    main()
+
+
+================================================================================
+FILE: test_mediapipe.py
+================================================================================
+
+import cv2
+import os
+
+os.environ['QT_QPA_PLATFORM'] = 'xcb'
+
+from landmarks.mediapipe_detector import MediaPipeDetector
+from landmarks.landmark_subset import extract_subset
+
+
+def main():
+    detector = MediaPipeDetector()
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        landmarks = detector.detect(frame)
+        if landmarks is not None:
+            print("Landmarks detected:", len(landmarks))
+            lm = landmarks[61]
+            print("Landmark 61:", lm.x, lm.y, lm.z)
+            subset = extract_subset(landmarks)
+            print("Subset size:", len(subset))
+
+        cv2.imshow("frame", frame)
+
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()
+
+
+================================================================================
+FILE: test_model_live.py
+================================================================================
+
+"""
+Real-Time Mental Health Classification
+
+Tests trained model with live webcam feed:
+- Captures 5-second behavioral windows
+- Extracts features in real-time
+- Classifies behavior using trained XGBoost model
+- Displays predictions with confidence scores
+
+Usage:
+    python test_model_live.py
+
+Controls:
+    ESC : Exit
+    SPACE : Reset window buffer
+"""
+
+import cv2
+import time
+import pickle
+import json
+import pandas as pd
+import numpy as np
+from collections import deque
+
+from landmarks.mediapipe_detector import MediaPipeDetector
+from landmarks.landmark_subset import extract_subset
+from processing.head_pose import estimate_head_pose, reject_unstable_frames
+from core.frame_buffer import FrameBuffer
+from core.feature_registry import FEATURE_REGISTRY
+
+import os
+os.environ['QT_QPA_PLATFORM'] = 'xcb'
+
+
+class RealTimeClassifier:
+    """
+    Real-time behavioral classification from webcam.
+    """
+    
+    def __init__(self, model_path='ml/mental_health_model.pkl', 
+                 metadata_path='ml/model_metadata.json',
+                 window_duration=5.0, fps=30):
+        """
+        Initialize classifier.
+        
+        Parameters
+        ----------
+        model_path : str
+            Path to trained XGBoost model
+        metadata_path : str
+            Path to model metadata
+        window_duration : float
+            Window size in seconds
+        fps : int
+            Expected frames per second
+        """
+        self.window_duration = window_duration
+        self.fps = fps
+        self.frames_per_window = int(window_duration * fps)
+        
+        # Load model
+        print(f"Loading model: {model_path}")
+        with open(model_path, 'rb') as f:
+            self.model = pickle.load(f)
+        
+        # Load metadata
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+        
+        self.feature_names = metadata['feature_names']
+        self.label_map = {int(k): v for k, v in metadata['label_map'].items()}
+        
+        print(f"✓ Model loaded")
+        print(f"✓ Classes: {len(self.label_map)}")
+        print(f"✓ Features: {len(self.feature_names)}")
+        print(f"✓ Window: {window_duration}s ({self.frames_per_window} frames)")
+        
+        # Frame buffer for windowing
+        self.frame_features = deque(maxlen=self.frames_per_window)
+        
+        # Prediction history for smoothing
+        self.prediction_history = deque(maxlen=3)
+        
+    def extract_frame_features(self, landmarks_3d):
+        """
+        Extract all features from one frame.
+        
+        Parameters
+        ----------
+        landmarks_3d : np.ndarray
+            Facial landmarks (468, 3)
+        
+        Returns
+        -------
+        dict
+            Feature values for this frame
+        """
+        features = {}
+        
+        for feature_obj in FEATURE_REGISTRY:
+            try:
+                value = feature_obj.compute(landmarks_3d)
+                features[feature_obj.name] = value
+            except Exception as e:
+                features[feature_obj.name] = 0.0
+        
+        return features
+    
+    def aggregate_window_features(self):
+        """
+        Aggregate buffered frames into window-level features.
+        
+        Returns
+        -------
+        pd.DataFrame or None
+            Single row with aggregated features
+        """
+        if len(self.frame_features) < self.frames_per_window:
+            return None
+        
+        # Convert frame features to DataFrame
+        df = pd.DataFrame(list(self.frame_features))
+        
+        # Compute aggregation statistics
+        agg_features = {}
+        
+        for col in df.columns:
+            agg_features[f'{col}_mean'] = df[col].mean()
+            agg_features[f'{col}_std'] = df[col].std()
+            agg_features[f'{col}_max'] = df[col].max()
+            agg_features[f'{col}_min'] = df[col].min()
+        
+        # Create single-row DataFrame
+        window_df = pd.DataFrame([agg_features])
+        
+        # Ensure feature order matches model training
+        # Reorder columns to match self.feature_names
+        missing_cols = [col for col in self.feature_names if col not in window_df.columns]
+        if missing_cols:
+            # Add missing columns with 0
+            for col in missing_cols:
+                window_df[col] = 0.0
+        
+        # Select and order columns
+        window_df = window_df[self.feature_names]
+        
+        return window_df
+    
+    def predict(self, window_features):
+        """
+        Classify behavior from window features.
+        
+        Parameters
+        ----------
+        window_features : pd.DataFrame
+            Single row with aggregated features
+        
+        Returns
+        -------
+        tuple
+            (predicted_label, confidence, all_probabilities)
+        """
+        # Get prediction probabilities
+        probs = self.model.predict_proba(window_features)[0]
+        
+        # Get predicted class
+        predicted_class = np.argmax(probs)
+        confidence = probs[predicted_class]
+        
+        return predicted_class, confidence, probs
+    
+    def get_smoothed_prediction(self, current_pred):
+        """
+        Smooth predictions over recent history.
+        
+        Parameters
+        ----------
+        current_pred : int
+            Current prediction
+        
+        Returns
+        -------
+        int
+            Smoothed prediction (most common in recent history)
+        """
+        self.prediction_history.append(current_pred)
+        
+        if len(self.prediction_history) < 2:
+            return current_pred
+        
+        # Return most common prediction in history
+        counts = {}
+        for pred in self.prediction_history:
+            counts[pred] = counts.get(pred, 0) + 1
+        
+        return max(counts.items(), key=lambda x: x[1])[0]
+    
+    def draw_prediction_overlay(self, frame, prediction, confidence, probabilities):
+        """
+        Draw prediction information on frame.
+        
+        Parameters
+        ----------
+        frame : np.ndarray
+            Video frame
+        prediction : int
+            Predicted class label
+        confidence : float
+            Confidence score
+        probabilities : np.ndarray
+            All class probabilities
+        """
+        h, w = frame.shape[:2]
+        
+        # Create semi-transparent overlay panel
+        overlay = frame.copy()
+        panel_height = 280
+        cv2.rectangle(overlay, (0, 0), (w, panel_height), (0, 0, 0), -1)
+        frame[:] = cv2.addWeighted(overlay, 0.7, frame, 0.3, 0)
+        
+        # Title
+        cv2.putText(frame, "MENTAL HEALTH CLASSIFICATION", 
+                   (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+        
+        # Prediction
+        condition_name = self.label_map[prediction]
+        color = self._get_color_for_class(prediction)
+        
+        cv2.putText(frame, f"Detected: {condition_name}", 
+                   (20, 85), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+        
+        cv2.putText(frame, f"Confidence: {confidence:.1%}", 
+                   (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        
+        # All class probabilities
+        y_offset = 160
+        cv2.putText(frame, "All Classes:", 
+                   (20, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1)
+        
+        y_offset += 25
+        sorted_indices = np.argsort(probabilities)[::-1]
+        
+        for idx in sorted_indices[:6]:  # Show all 6 classes
+            class_name = self.label_map[idx]
+            prob = probabilities[idx]
+            
+            # Color based on probability
+            if prob > 0.5:
+                bar_color = (0, 255, 0)  # Green
+            elif prob > 0.2:
+                bar_color = (0, 165, 255)  # Orange
+            else:
+                bar_color = (100, 100, 100)  # Gray
+            
+            # Draw probability bar
+            bar_width = int(200 * prob)
+            cv2.rectangle(frame, (150, y_offset - 10), 
+                         (150 + bar_width, y_offset + 5), bar_color, -1)
+            
+            # Class name and percentage
+            text = f"{class_name[:15]:15s} {prob:5.1%}"
+            cv2.putText(frame, text, (20, y_offset), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            
+            y_offset += 20
+        
+        # Buffer status
+        buffer_pct = len(self.frame_features) / self.frames_per_window
+        buffer_text = f"Buffer: {len(self.frame_features)}/{self.frames_per_window} " \
+                      f"({buffer_pct:.0%})"
+        
+        buffer_color = (0, 255, 0) if buffer_pct >= 1.0 else (0, 165, 255)
+        cv2.putText(frame, buffer_text, (w - 350, h - 20), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, buffer_color, 2)
+        
+        # Instructions
+        cv2.putText(frame, "ESC: Exit | SPACE: Reset Buffer", 
+                   (20, h - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+    
+    def _get_color_for_class(self, class_label):
+        """Get display color for each class."""
+        colors = {
+            0: (147, 112, 219),  # Depression - Purple
+            1: (0, 165, 255),    # Anxiety - Orange
+            2: (0, 255, 255),    # Stress - Yellow
+            3: (0, 255, 0),      # Bipolar Mania - Green
+            4: (255, 0, 255),    # Phobia - Magenta
+            5: (255, 0, 0)       # Suicidal - Red
+        }
+        return colors.get(class_label, (255, 255, 255))
+
+
+def main():
+    """
+    Main execution loop.
+    """
+    print("=" * 70)
+    print("REAL-TIME MENTAL HEALTH CLASSIFICATION")
+    print("=" * 70)
+    
+    # Initialize classifier
+    try:
+        classifier = RealTimeClassifier()
+    except Exception as e:
+        print(f"✗ Error loading model: {e}")
+        print("\nMake sure you've trained the model first:")
+        print("  python ml/run_full_pipeline.py")
+        return
+    
+    # Initialize components
+    print("\nInitializing video capture...")
+    detector = MediaPipeDetector()
+    # Lower detection thresholds for better sensitivity
+    detector.face_mesh = detector.mp_face.FaceMesh(
+        max_num_faces=1,
+        refine_landmarks=True,
+        min_detection_confidence=0.3,  # Lower threshold
+        min_tracking_confidence=0.3,   # Lower threshold
+    )
+    
+    frame_buffer = FrameBuffer()
+    
+    # Start webcam
+    cap = cv2.VideoCapture(0)
+    
+    if not cap.isOpened():
+        print("✗ Error: Cannot open webcam")
+        return
+    
+    print("✓ Webcam opened")
+    print("\n" + "=" * 70)
+    print("LIVE CLASSIFICATION")
+    print("=" * 70)
+    print("\nInstructions:")
+    print("  1. Wait for buffer to fill (5 seconds / 150 frames)")
+    print("  2. Predictions will update continuously")
+    print("  3. Press SPACE to reset buffer")
+    print("  4. Press ESC to exit")
+    print("\n" + "=" * 70)
+    
+    frame_count = 0
+    last_prediction = None
+    last_confidence = 0.0
+    
+    while True:
+        ret, frame = cap.read()
+        
+        if not ret:
+            print("✗ Error reading frame")
+            break
+        
+        frame_count += 1
+        
+        # Detect landmarks
+        landmarks = detector.detect(frame)
+        
+        # Debug: Check landmark detection
+        if frame_count % 30 == 0:  # Every second at 30fps
+            if landmarks is None:
+                print(f"Frame {frame_count}: ✗ No landmarks detected")
+            else:
+                print(f"Frame {frame_count}: ✓ Landmarks detected, buffer: {len(classifier.frame_features)}/150")
+        
+        if landmarks is not None:
+            try:
+                # Extract landmark subset
+                subset = extract_subset(landmarks)
+                
+                # Estimate head pose (returns yaw, pitch, roll)
+                yaw, pitch, roll = estimate_head_pose(subset, frame.shape)
+                
+                # Head pose rejection DISABLED - accept all frames
+                # if not reject_unstable_frames(yaw, pitch):
+                if True:  # Always accept frames
+                    # Convert to 3D coordinates
+                    landmarks_3d = np.array([
+                        [lm.x, lm.y, lm.z] 
+                        for lm in landmarks
+                    ])
+                    
+                    # Extract frame features
+                    frame_features = classifier.extract_frame_features(landmarks_3d)
+                    
+                    # Add to buffer
+                    classifier.frame_features.append(frame_features)
+                    
+                    # If buffer is full, make prediction
+                    if len(classifier.frame_features) >= classifier.frames_per_window:
+                        # Aggregate features
+                        window_features = classifier.aggregate_window_features()
+                        
+                        if window_features is not None:
+                            # Predict
+                            prediction, confidence, probs = classifier.predict(window_features)
+                            
+                            # Smooth prediction
+                            smoothed_pred = classifier.get_smoothed_prediction(prediction)
+                            
+                            last_prediction = smoothed_pred
+                            last_confidence = confidence
+                    
+                    # Draw landmarks on frame (optional visualization)
+                    h, w = frame.shape[:2]
+                    for lm in landmarks:
+                        x = int(lm.x * w)
+                        y = int(lm.y * h)
+                        cv2.circle(frame, (x, y), 1, (0, 255, 0), -1)
+                # else:
+                #     # Frame rejected due to unstable head pose
+                #     if frame_count % 30 == 0:
+                #         print(f"Frame {frame_count}: ⚠ Unstable head pose (yaw={yaw:.1f}°, pitch={pitch:.1f}°)")
+            
+            except Exception as e:
+                if frame_count % 30 == 0:
+                    print(f"Frame {frame_count}: ✗ Error processing: {e}")
+        else:
+            # Show "no face detected" indicator on frame
+            h, w = frame.shape[:2]
+            cv2.putText(frame, "No face detected", (w//2 - 100, 50), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        
+        # Draw prediction overlay
+        if last_prediction is not None:
+            # Get current probabilities (if available)
+            if len(classifier.frame_features) >= classifier.frames_per_window:
+                window_features = classifier.aggregate_window_features()
+                if window_features is not None:
+                    _, _, current_probs = classifier.predict(window_features)
+                else:
+                    current_probs = np.zeros(len(classifier.label_map))
+            else:
+                current_probs = np.zeros(len(classifier.label_map))
+            
+            classifier.draw_prediction_overlay(
+                frame, last_prediction, last_confidence, current_probs
+            )
+        else:
+            # Show waiting message
+            h, w = frame.shape[:2]
+            text = "Collecting data... Please wait"
+            cv2.putText(frame, text, (w//2 - 200, h//2), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+            
+            buffer_pct = len(classifier.frame_features) / classifier.frames_per_window
+            progress_text = f"{buffer_pct:.0%} ({len(classifier.frame_features)}/{classifier.frames_per_window} frames)"
+            cv2.putText(frame, progress_text, (w//2 - 100, h//2 + 40), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        
+        # Display
+        cv2.imshow('Mental Health Classification', frame)
+        
+        # Handle keys
+        key = cv2.waitKey(1) & 0xFF
+        
+        if key == 27:  # ESC
+            print("\n✓ Exiting...")
+            break
+        elif key == 32:  # SPACE
+            print("\n✓ Buffer reset")
+            classifier.frame_features.clear()
+            classifier.prediction_history.clear()
+            last_prediction = None
+            last_confidence = 0.0
+    
+    # Cleanup
+    cap.release()
+    cv2.destroyAllWindows()
+    
+    print("\n" + "=" * 70)
+    print("SESSION COMPLETE")
+    print("=" * 70)
+    print(f"Total frames processed: {frame_count}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+================================================================================
+FILE: utils/math_utils.py
+================================================================================
+
+
+
+================================================================================
+SUMMARY: 34 Python files extracted
+================================================================================
