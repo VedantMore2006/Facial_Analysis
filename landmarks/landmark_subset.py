@@ -1,7 +1,7 @@
 """
 Landmark Subset Extraction
-Reduces 478 MediaPipe landmarks to the selected subset (38 landmarks).
-Includes additional eyebrow landmarks for better facial expression tracking.
+Reduces 478 MediaPipe landmarks to the selected subset (32 landmarks).
+Includes 2 landmarks at the end of the right eyebrow for expression tracking.
 """
 
 
@@ -13,7 +13,7 @@ LANDMARK_SUBSET = [
 	133, 145,
 	152, 159,
 	234,
-	263, 276, 280, 282, 283, 285, 293, 295, 300,  # Right eyebrow area
+	263, 285,  # Right eyebrow end (2 points)
 	291, 296,
 	308, 324,
 	334, 336,

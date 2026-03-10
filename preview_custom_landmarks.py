@@ -1,45 +1,46 @@
 """
-Landmarks Preview Visualization
-Displays the selected landmarks used for facial analysis.
-Can work with webcam feed or static image.
+Custom Landmarks Preview Visualization
+Displays the custom 29 landmarks for facial analysis.
+Works with webcam feed or static images.
 """
 
 import cv2
 import mediapipe as mp
 import numpy as np
-from landmark_subset import LANDMARK_SUBSET
 import os
+from custom_landmarks import CUSTOM_LANDMARKS
 
 os.environ['QT_QPA_PLATFORM'] = 'xcb'
+
+
 # Color scheme for different facial regions (BGR format)
-LANDMARK_COLORS = {
-    # Face contour (1, 2, 13, 14, 152, 234, 454)
-    'face': (255, 200, 100),  # Light blue
-    # Eyes (33, 133, 145, 159, 263, 362, 374, 386)
-    'eyes': (0, 255, 0),  # Green
-    # Eye regions (50, 61, 63, 70, 78, 95, 280, 291, 296, 308, 324, 336)
-    'eye_region': (0, 200, 255),  # Yellow
-    # Mouth/lips (468, 472)
-    'mouth': (0, 0, 255),  # Red
+REGION_COLORS = {
+    'face': (255, 200, 100),      # Light blue - face contour
+    'eyes': (0, 255, 0),          # Green - eyes
+    'eye_region': (0, 200, 255),  # Yellow - eye surrounding area
+    'mouth': (0, 0, 255),         # Red - mouth/lips
+    'nose': (255, 100, 255),      # Magenta - nose
 }
 
 
 def get_landmark_color(idx):
     """Get color for specific landmark based on facial region."""
+    # Face contour
     if idx in [1, 2, 13, 14, 152, 234, 454]:
-        return LANDMARK_COLORS['face']
+        return REGION_COLORS['face']
+    # Eyes
     elif idx in [33, 133, 145, 159, 263, 362, 374, 386]:
-        return LANDMARK_COLORS['eyes']
-    elif idx in [468, 472]:
-        return LANDMARK_COLORS['mouth']
-    elif idx in [285, 300]:  # Right eyebrow end (2 points)
-        return (100, 255, 255)  # Bright yellow for eyebrow
+        return REGION_COLORS['eyes']
+    # Mouth/lips
+    elif idx in [468, 472, 291, 296, 308, 324]:
+        return REGION_COLORS['mouth']
+    # Eye region
     else:
-        return LANDMARK_COLORS['eye_region']
+        return REGION_COLORS['eye_region']
 
 
-class LandmarkVisualizer:
-    """Visualizes the selected landmarks on face."""
+class CustomLandmarkVisualizer:
+    """Visualizes custom landmark subset on face."""
     
     def __init__(self):
         """Initialize MediaPipe FaceMesh detector."""
@@ -51,9 +52,9 @@ class LandmarkVisualizer:
             min_tracking_confidence=0.5,
         )
     
-    def draw_landmarks(self, frame, landmarks, show_labels=True, show_connections=False):
+    def draw_landmarks(self, frame, landmarks, show_labels=False, dot_size=2):
         """
-        Draw the selected landmarks on frame.
+        Draw custom landmarks on frame.
         
         Parameters
         ----------
@@ -63,8 +64,8 @@ class LandmarkVisualizer:
             MediaPipe landmark list (478 elements)
         show_labels : bool
             Whether to show landmark index labels
-        show_connections : bool
-            Whether to show connections between landmarks
+        dot_size : int
+            Radius of landmark dots
         
         Returns
         -------
@@ -74,46 +75,32 @@ class LandmarkVisualizer:
         h, w = frame.shape[:2]
         annotated_frame = frame.copy()
         
-        # Extract positions of selected landmarks
+        # Extract positions
         landmark_positions = {}
-        for idx in LANDMARK_SUBSET:
+        for idx in CUSTOM_LANDMARKS:
             lm = landmarks[idx]
             x = int(lm.x * w)
             y = int(lm.y * h)
             landmark_positions[idx] = (x, y)
         
-        # Draw connections if requested (simple lines between nearby landmarks)
-        if show_connections:
-            sorted_indices = sorted(LANDMARK_SUBSET)
-            for i in range(len(sorted_indices)):
-                for j in range(i + 1, len(sorted_indices)):
-                    idx1, idx2 = sorted_indices[i], sorted_indices[j]
-                    # Only connect if indices are close (heuristic)
-                    if abs(idx1 - idx2) <= 5:
-                        cv2.line(annotated_frame, 
-                                landmark_positions[idx1], 
-                                landmark_positions[idx2], 
-                                (150, 150, 150), 1)
-        
         # Draw landmarks
-        for idx in LANDMARK_SUBSET:
+        for idx in CUSTOM_LANDMARKS:
             x, y = landmark_positions[idx]
             color = get_landmark_color(idx)
             
-            # Draw small circle for landmark (small dot)
-            cv2.circle(annotated_frame, (x, y), 2, color, -1)
-            cv2.circle(annotated_frame, (x, y), 2, (255, 255, 255), 1)  # White border
+            # Draw dot
+            cv2.circle(annotated_frame, (x, y), dot_size, color, -1)
+            cv2.circle(annotated_frame, (x, y), dot_size, (255, 255, 255), 1)
             
             # Draw label if requested
             if show_labels:
-                # Background rectangle for text
                 text = str(idx)
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 font_scale = 0.35
                 thickness = 1
                 (text_w, text_h), _ = cv2.getTextSize(text, font, font_scale, thickness)
                 
-                # Draw semi-transparent background
+                # Background for text
                 overlay = annotated_frame.copy()
                 cv2.rectangle(overlay, 
                              (x + 6, y - text_h - 4), 
@@ -129,40 +116,39 @@ class LandmarkVisualizer:
     
     def add_legend(self, frame):
         """Add color legend to frame."""
-        legend_height = 100
+        legend_height = 120
         legend = np.zeros((legend_height, frame.shape[1], 3), dtype=np.uint8)
         
         # Title
-        cv2.putText(legend, "Landmark Regions:", (10, 25), 
+        cv2.putText(legend, "Custom Landmark Regions:", (10, 25), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
         # Legend items
-        y_offset = 50
+        y_offset = 55
         items = [
-            (LANDMARK_COLORS['face'], "Face Contour"),
-            (LANDMARK_COLORS['eyes'], "Eyes"),
-            ((100, 255, 255), "Eyebrow"),
-            (LANDMARK_COLORS['eye_region'], "Eye Region"),
-            (LANDMARK_COLORS['mouth'], "Mouth"),
+            (REGION_COLORS['face'], "Face Contour"),
+            (REGION_COLORS['eyes'], "Eyes"),
+            (REGION_COLORS['eye_region'], "Eye Region"),
+            (REGION_COLORS['mouth'], "Mouth"),
         ]
         
         for i, (color, label) in enumerate(items):
-            x_offset = 10 + (i % 3) * 200
-            y_pos = y_offset + (i // 3) * 30
-            cv2.circle(legend, (x_offset, y_pos), 5, color, -1)
-            cv2.circle(legend, (x_offset, y_pos), 5, (255, 255, 255), 1)
+            x_offset = 10 + (i % 2) * 250
+            y_pos = y_offset + (i // 2) * 30
+            cv2.circle(legend, (x_offset, y_pos), 4, color, -1)
+            cv2.circle(legend, (x_offset, y_pos), 4, (255, 255, 255), 1)
             cv2.putText(legend, label, (x_offset + 15, y_pos + 5), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         
         # Info text
-        info_text = f"Total Landmarks Used: {len(LANDMARK_SUBSET)} out of 478"
+        info_text = f"Total Landmarks: {len(CUSTOM_LANDMARKS)} out of 478 MediaPipe landmarks"
         cv2.putText(legend, info_text, (10, legend_height - 10), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
         
         # Combine frame with legend
         return np.vstack([frame, legend])
     
-    def visualize_webcam(self, show_labels=True, show_connections=False, show_legend=True):
+    def visualize_webcam(self, show_labels=False, show_legend=True, dot_size=2):
         """
         Visualize landmarks using webcam feed.
         
@@ -170,10 +156,10 @@ class LandmarkVisualizer:
         ----------
         show_labels : bool
             Whether to show landmark index labels
-        show_connections : bool
-            Whether to show connections between landmarks
         show_legend : bool
             Whether to show color legend
+        dot_size : int
+            Radius of landmark dots
         """
         cap = cv2.VideoCapture(0)
         
@@ -181,11 +167,14 @@ class LandmarkVisualizer:
             print("Error: Could not open webcam")
             return
         
-        print("Webcam visualization started...")
-        print("Press 'q' to quit")
-        print("Press 'l' to toggle labels")
-        print("Press 'c' to toggle connections")
-        print("Press 's' to save screenshot")
+        print("Custom Landmarks Preview - Webcam Mode")
+        print("=" * 50)
+        print("Controls:")
+        print("  'q' - Quit")
+        print("  'l' - Toggle labels")
+        print("  's' - Save screenshot")
+        print("  '+' - Increase dot size")
+        print("  '-' - Decrease dot size")
         
         screenshot_count = 0
         
@@ -195,50 +184,52 @@ class LandmarkVisualizer:
                 print("Failed to grab frame")
                 break
             
-            # Flip frame horizontally for mirror view
+            # Mirror view
             frame = cv2.flip(frame, 1)
             
-            # Convert to RGB for MediaPipe
+            # Detect landmarks
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = self.face_mesh.process(rgb_frame)
             
             # Draw landmarks if face detected
             if results.multi_face_landmarks:
                 landmarks = results.multi_face_landmarks[0].landmark
-                frame = self.draw_landmarks(frame, landmarks, show_labels, show_connections)
+                frame = self.draw_landmarks(frame, landmarks, show_labels, dot_size)
             else:
-                # No face detected message
                 cv2.putText(frame, "No face detected", (10, 30), 
                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             
-            # Add legend if requested
+            # Add legend
             if show_legend:
                 frame = self.add_legend(frame)
             
-            # Display frame
-            cv2.imshow('Facial Landmarks Preview', frame)
+            # Display
+            cv2.imshow('Custom Landmarks Preview', frame)
             
-            # Handle key presses
+            # Handle keys
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 break
             elif key == ord('l'):
                 show_labels = not show_labels
                 print(f"Labels: {'ON' if show_labels else 'OFF'}")
-            elif key == ord('c'):
-                show_connections = not show_connections
-                print(f"Connections: {'ON' if show_connections else 'OFF'}")
             elif key == ord('s'):
                 screenshot_count += 1
-                filename = f"landmark_preview_{screenshot_count}.png"
+                filename = f"custom_landmarks_{screenshot_count}.png"
                 cv2.imwrite(filename, frame)
                 print(f"Screenshot saved: {filename}")
+            elif key == ord('+') or key == ord('='):
+                dot_size = min(dot_size + 1, 10)
+                print(f"Dot size: {dot_size}")
+            elif key == ord('-') or key == ord('_'):
+                dot_size = max(dot_size - 1, 1)
+                print(f"Dot size: {dot_size}")
         
         cap.release()
         cv2.destroyAllWindows()
     
-    def visualize_image(self, image_path, show_labels=True, show_connections=False, 
-                       show_legend=True, save_output=None):
+    def visualize_image(self, image_path, show_labels=False, show_legend=True, 
+                       dot_size=2, save_output=None):
         """
         Visualize landmarks on a static image.
         
@@ -248,10 +239,10 @@ class LandmarkVisualizer:
             Path to input image
         show_labels : bool
             Whether to show landmark index labels
-        show_connections : bool
-            Whether to show connections between landmarks
         show_legend : bool
             Whether to show color legend
+        dot_size : int
+            Radius of landmark dots
         save_output : str, optional
             Path to save annotated image
         """
@@ -260,7 +251,7 @@ class LandmarkVisualizer:
             print(f"Error: Could not load image from {image_path}")
             return
         
-        # Convert to RGB for MediaPipe
+        # Detect landmarks
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(rgb_frame)
         
@@ -270,19 +261,19 @@ class LandmarkVisualizer:
         
         # Draw landmarks
         landmarks = results.multi_face_landmarks[0].landmark
-        annotated = self.draw_landmarks(frame, landmarks, show_labels, show_connections)
+        annotated = self.draw_landmarks(frame, landmarks, show_labels, dot_size)
         
-        # Add legend if requested
+        # Add legend
         if show_legend:
             annotated = self.add_legend(annotated)
         
         # Save if requested
         if save_output:
             cv2.imwrite(save_output, annotated)
-            print(f"Saved annotated image to: {save_output}")
+            print(f"Saved: {save_output}")
         
         # Display
-        cv2.imshow('Facial Landmarks Preview', annotated)
+        cv2.imshow('Custom Landmarks Preview', annotated)
         print("Press any key to close...")
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -293,86 +284,74 @@ class LandmarkVisualizer:
             self.face_mesh.close()
 
 
-def print_landmark_info():
-    """Print information about the landmarks being used."""
+def print_info():
+    """Print landmark information."""
     print("=" * 60)
-    print("FACIAL LANDMARK SUBSET - PREVIEW")
+    print("CUSTOM MEDIAPIPE LANDMARK PREVIEW")
     print("=" * 60)
-    print(f"\nTotal landmarks used: {len(LANDMARK_SUBSET)} out of 478 MediaPipe landmarks\n")
-    print("Landmark indices:")
-    print(LANDMARK_SUBSET)
-    print("\nRegion breakdown:")
-    print("  - Face Contour: 7 landmarks")
-    print("  - Eyes: 8 landmarks")
-    print("  - Right Eyebrow: 2 landmarks")
-    print("  - Eye Region: 13 landmarks")
-    print("  - Mouth: 2 landmarks")
+    print(f"\nTotal landmarks: {len(CUSTOM_LANDMARKS)}")
+    print(f"\nLandmark indices:")
+    print(CUSTOM_LANDMARKS)
     print("\n" + "=" * 60 + "\n")
 
 
 if __name__ == "__main__":
-    import sys
     import argparse
     
-    # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Visualize facial landmarks used in the analysis system',
+        description='Visualize custom facial landmarks',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
   Webcam mode (no labels):
-    python landmarks_preview.py
+    python preview_custom_landmarks.py
   
-  Webcam mode with labels:
-    python landmarks_preview.py --labels
+  Webcam with labels:
+    python preview_custom_landmarks.py --labels
   
   Image mode:
-    python landmarks_preview.py --image photo.jpg --output result.png
+    python preview_custom_landmarks.py --image photo.jpg --output result.png
   
-  With connections visible:
-    python landmarks_preview.py --connections
+  Larger dots:
+    python preview_custom_landmarks.py --dot-size 4
         '''
     )
     
-    parser.add_argument('--image', '-i', type=str, 
+    parser.add_argument('--image', '-i', type=str,
                        help='Path to input image (if not provided, uses webcam)')
-    parser.add_argument('--output', '-o', type=str, default='landmark_preview_output.png',
-                       help='Output path for annotated image (default: landmark_preview_output.png)')
+    parser.add_argument('--output', '-o', type=str, default='custom_landmarks_output.png',
+                       help='Output path for image mode')
     parser.add_argument('--labels', '-l', action='store_true',
-                       help='Show landmark index numbers (default: off)')
-    parser.add_argument('--connections', '-c', action='store_true',
-                       help='Show connections between landmarks (default: off)')
+                       help='Show landmark numbers')
     parser.add_argument('--no-legend', action='store_true',
-                       help='Hide the color legend (default: shown)')
+                       help='Hide color legend')
+    parser.add_argument('--dot-size', '-d', type=int, default=2,
+                       help='Dot radius (default: 2)')
     parser.add_argument('--quiet', '-q', action='store_true',
-                       help='Suppress landmark info output')
+                       help='Suppress info output')
     
     args = parser.parse_args()
     
-    # Print landmark info unless quiet mode
     if not args.quiet:
-        print_landmark_info()
+        print_info()
     
-    visualizer = LandmarkVisualizer()
+    visualizer = CustomLandmarkVisualizer()
     
-    # Check if image mode or webcam mode
     if args.image:
         # Image mode
-        print(f"Processing image: {args.image}")
+        print(f"Processing: {args.image}")
         visualizer.visualize_image(
-            args.image, 
-            show_labels=args.labels, 
-            show_connections=args.connections,
+            args.image,
+            show_labels=args.labels,
             show_legend=not args.no_legend,
+            dot_size=args.dot_size,
             save_output=args.output
         )
     else:
-        # Webcam mode (default)
+        # Webcam mode
         print("Starting webcam mode...")
-        print(f"Labels: {'ON' if args.labels else 'OFF'}")
-        print(f"Connections: {'ON' if args.connections else 'OFF'}")
         visualizer.visualize_webcam(
-            show_labels=args.labels, 
-            show_connections=args.connections,
-            show_legend=not args.no_legend
+            show_labels=args.labels,
+            show_legend=not args.no_legend,
+            dot_size=args.dot_size
         )
